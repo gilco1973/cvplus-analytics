@@ -1,4 +1,7 @@
-// Analytics Types
+// CVPlus Analytics - Comprehensive Type Definitions
+// Main export file for all analytics types
+
+// Core Analytics Types (Legacy - kept for backward compatibility)
 export interface RevenueMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
@@ -51,7 +54,8 @@ export interface BusinessMetrics {
   monthlyActiveUsers: number;
 }
 
-export interface AnalyticsEvent {
+// Legacy AnalyticsEvent interface (deprecated - use AnalyticsEvent from tracking.types.ts)
+export interface LegacyAnalyticsEvent {
   eventId: string;
   eventType: string;
   userId: string;
@@ -60,6 +64,7 @@ export interface AnalyticsEvent {
   revenue?: number;
 }
 
+// Legacy interfaces (kept for backward compatibility)
 export interface AnalyticsQuery {
   startDate: Date;
   endDate: Date;
@@ -83,12 +88,12 @@ export interface DashboardConfig {
   dashboardId: string;
   userId: string;
   name: string;
-  widgets: DashboardWidget[];
+  widgets: LegacyDashboardWidget[];
   refreshInterval: number;
   isDefault: boolean;
 }
 
-export interface DashboardWidget {
+export interface LegacyDashboardWidget {
   widgetId: string;
   type: 'chart' | 'metric' | 'table' | 'heatmap';
   title: string;
@@ -100,7 +105,13 @@ export interface DashboardWidget {
   };
 }
 
-// Export all types
+// Export all new comprehensive types
+export * from './tracking.types';
+export * from './privacy.types';
+export * from './ab-testing.types';
+export * from './business-intelligence.types';
+
+// Export legacy types for backward compatibility
 export * from './analytics.types';
 export * from './revenue.types';
 export * from './cohort.types';
