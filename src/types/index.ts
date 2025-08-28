@@ -1,4 +1,9 @@
-// Analytics Types
+// CVPlus Analytics Types
+// Comprehensive type definitions for analytics, revenue tracking, and business intelligence
+
+// =============================================================================
+// LEGACY INTERFACES (for backwards compatibility)
+// =============================================================================
 export interface RevenueMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
@@ -100,8 +105,82 @@ export interface DashboardWidget {
   };
 }
 
-// Export all types
+// =============================================================================
+// MODERN TYPE EXPORTS
+// =============================================================================
+
+// Core Analytics Types
+export type {
+  AnalyticsEvent as CoreAnalyticsEvent,
+  AnalyticsMetrics,
+  EventData,
+  UserMetrics,
+  SystemMetrics,
+  PerformanceMetrics
+} from './analytics-core.types';
+
+// Enhanced Analytics Types
+export type {
+  FeatureUsage,
+  FeatureInteraction,
+  FeatureConfig,
+  UserExperience,
+  UserPersonality,
+  FeaturePersonalityAnalysis
+} from './enhanced-analytics';
+
+// Portal Analytics Types  
+export type {
+  PortalUrls,
+  PortalAnalytics,
+  URLPlacement,
+  QRCodeType,
+  QRCodeStyling,
+  QRCodeAnalytics
+} from './portal-analytics';
+
+// External Data Analytics Types
+export type {
+  ExternalDataUsageEvent,
+  ExternalDataSource,
+  ExternalDataMetrics,
+  ExternalDataAnalytics
+} from './external-data-analytics.types';
+
+// Cohort Types
+export type {
+  CohortType,
+  CohortRetentionData,
+  CohortRevenueData,
+  CohortSegmentation
+} from './cohort.types';
+
+// Revenue Types
+export type {
+  RevenueStreamType,
+  RevenueMetadata,
+  RevenueProjection,
+  RevenueComparison
+} from './revenue.types';
+
+// Dashboard Types
+export type {
+  DashboardMetrics,
+  DashboardConfig as ModernDashboardConfig,
+  DashboardWidget as ModernDashboardWidget,
+  DashboardLayout
+} from './dashboard.types';
+
+// =============================================================================
+// ALL TYPE EXPORTS (for maximum compatibility)
+// =============================================================================
 export * from './analytics.types';
 export * from './revenue.types';
 export * from './cohort.types';
 export * from './dashboard.types';
+export * from './user-outcomes';
+
+// =============================================================================
+// VERSION
+// =============================================================================
+export const ANALYTICS_TYPES_VERSION = '1.0.0';

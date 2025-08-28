@@ -1,40 +1,45 @@
-export interface AnalyticsConfig {
-  trackingEnabled: boolean;
-  dataRetentionDays: number;
-  batchSize: number;
-  flushInterval: number;
-  endpoints: {
-    events: string;
-    metrics: string;
-    reports: string;
-  };
-}
+// CVPlus Analytics Types
+// Comprehensive analytics type definitions
 
-export interface TrackingEvent {
-  event: string;
-  userId?: string;
-  sessionId?: string;
-  timestamp: number;
-  properties: Record<string, any>;
-  context: {
-    userAgent?: string;
-    ip?: string;
-    page?: string;
-    referrer?: string;
-  };
-}
+// Re-export all analytics types for backwards compatibility
+export type {
+  AnalyticsEvent,
+  AnalyticsMetrics,
+  EventData,
+  UserMetrics,
+  SystemMetrics,
+  PerformanceMetrics
+} from './analytics-core.types';
 
-export interface MetricDefinition {
-  name: string;
-  description: string;
-  type: 'counter' | 'gauge' | 'histogram' | 'summary';
-  unit?: string;
-  tags?: string[];
-}
+export type {
+  FeatureUsage,
+  FeatureInteraction,
+  FeatureConfig,
+  UserExperience,
+  UserPersonality,
+  FeaturePersonalityAnalysis
+} from './enhanced-analytics';
 
-export interface AnalyticsError {
-  code: string;
-  message: string;
-  context?: Record<string, any>;
-  timestamp: Date;
-}
+export type {
+  PortalUrls,
+  PortalAnalytics,
+  URLPlacement,
+  QRCodeType,
+  QRCodeStyling,
+  QRCodeAnalytics
+} from './portal-analytics';
+
+export type {
+  ExternalDataUsageEvent,
+  ExternalDataSource,
+  ExternalDataMetrics,
+  ExternalDataAnalytics
+} from './external-data-analytics.types';
+
+// Aggregate type for all analytics types
+export type AnalyticsTypes = 
+  | AnalyticsEvent
+  | AnalyticsMetrics
+  | FeatureUsage
+  | PortalAnalytics
+  | ExternalDataUsageEvent;
