@@ -67,4 +67,13 @@ export {
 // =============================================================================
 // VERSION
 // =============================================================================
+
+// Outcome Tracking Service
+export {
+  OutcomeTrackingService,
+  outcomeTrackingService,
+  type OutcomeTrackingConfig,
+  type OutcomeAnalytics,
+  type FollowUpReminder
+} from './outcome-tracking.service';
 export const ANALYTICS_SERVICES_VERSION = '1.0.0';

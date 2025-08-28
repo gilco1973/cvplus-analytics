@@ -30,3 +30,38 @@ export interface RetentionMatrix {
   periods: string[];
   data: number[][]; // retention rates
 }
+
+// Additional missing types for compatibility
+export type CohortType = 'registration' | 'first_purchase' | 'feature_adoption' | 'engagement';
+
+export interface CohortRetentionData {
+  cohortId: string;
+  cohortDate: string;
+  totalUsers: number;
+  periods: {
+    period: number;
+    retainedUsers: number;
+    retentionRate: number;
+  }[];
+}
+
+export interface CohortRevenueData {
+  cohortId: string;
+  cohortDate: string;
+  totalUsers: number;
+  periods: {
+    period: number;
+    revenue: number;
+    averageRevenuePerUser: number;
+    cumulativeRevenue: number;
+  }[];
+}
+
+export interface CohortSegmentation {
+  segmentId: string;
+  name: string;
+  description: string;
+  criteria: Record<string, any>;
+  userCount: number;
+  metrics: CohortMetrics;
+}

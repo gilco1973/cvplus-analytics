@@ -39,7 +39,7 @@ export {
 export { batchTrackingEvents } from './premium/batchTrackingEvents';
 export { getRealtimeUsageStats } from './premium/getRealtimeUsageStats';
 export { 
-  generateCustomReport,
+  createCustomReport,
   generateWhiteLabelReport,
   exportReport,
   getDataSources,

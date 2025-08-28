@@ -134,5 +134,45 @@ export interface AnalyticsMetrics {
   };
 }
 
+// Additional core types
+export interface EventData {
+  action: string;
+  value?: number;
+  properties?: Record<string, any>;
+}
+
+export interface UserMetrics {
+  userId: string;
+  sessionCount: number;
+  totalEngagementTime: number;
+  featureUsageCount: Record<string, number>;
+  lastActiveDate: Date;
+  conversionEvents: number;
+  retentionScore: number;
+}
+
+export interface SystemMetrics {
+  systemId: string;
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
+  networkLatency: number;
+  errorRate: number;
+  throughput: number;
+  timestamp: Date;
+}
+
+export interface PerformanceMetrics {
+  metricId: string;
+  loadTime: number;
+  responseTime: number;
+  errorRate: number;
+  successRate: number;
+  throughput: number;
+  timestamp: Date;
+  endpoint?: string;
+  userId?: string;
+}
+
 // Type unions for easier handling
 export type AnalyticsTypes = AnalyticsEvent | AnalyticsMetrics;

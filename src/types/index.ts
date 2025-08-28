@@ -158,14 +158,14 @@ export type {
 // Revenue Types
 export type {
   RevenueStreamType,
-  RevenueMetadata,
+  RevenueData,
   RevenueProjection,
   RevenueComparison
 } from './revenue.types';
 
 // Dashboard Types
 export type {
-  DashboardMetrics,
+  DashboardMetric,
   DashboardConfig as ModernDashboardConfig,
   DashboardWidget as ModernDashboardWidget,
   DashboardLayout

@@ -11,7 +11,7 @@
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
-import { AtRiskUser, RetentionAction } from '../ml/churn-prediction.service';
+import { AtRiskUser, RetentionAction } from './churn-prediction.service';
 
 export interface RetentionCampaign {
   id: string;
