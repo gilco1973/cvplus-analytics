@@ -35,3 +35,42 @@ export interface WidgetLayout {
   minWidth?: number;
   minHeight?: number;
 }
+
+// Additional missing types for compatibility
+export interface DashboardConfig {
+  dashboardId: string;
+  name: string;
+  description?: string;
+  widgets: string[];
+  refreshInterval: number; // seconds
+  isPublic: boolean;
+  owner: string;
+  permissions: {
+    view: string[];
+    edit: string[];
+  };
+  filters?: Record<string, any>;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+}
+
+export interface DashboardWidget {
+  widgetId: string;
+  type: 'metric' | 'chart' | 'table' | 'text' | 'image';
+  title: string;
+  description?: string;
+  config: Record<string, any>;
+  dataSource: string;
+  query?: string;
+  refreshRate: number; // seconds
+  size: {
+    width: number;
+    height: number;
+  };
+  position: {
+    x: number;
+    y: number;
+  };
+}

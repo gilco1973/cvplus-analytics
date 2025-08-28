@@ -3,7 +3,20 @@
   "version": "1.0.0",
   "description": "CVPlus Analytics Module - Advanced analytics, revenue tracking, and business intelligence",
   "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -19,7 +32,8 @@
     "firebase": "^10.7.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^5.0.1",
-    "stripe": "^14.0.0"
+    "ioredis": "^5.3.0",
+    "stripe": "^15.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

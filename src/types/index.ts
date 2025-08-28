@@ -1,7 +1,9 @@
 // CVPlus Analytics - Comprehensive Type Definitions
-// Main export file for all analytics types
+// Main export file for all analytics types - Legacy and Modern
 
-// Core Analytics Types (Legacy - kept for backward compatibility)
+// =============================================================================
+// LEGACY INTERFACES (for backwards compatibility)
+// =============================================================================
 export interface RevenueMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
@@ -105,14 +107,107 @@ export interface LegacyDashboardWidget {
   };
 }
 
-// Export all new comprehensive types
-export * from './tracking.types';
-export * from './privacy.types';
-export * from './ab-testing.types';
-export * from './business-intelligence.types';
+// =============================================================================
+// MODERN TYPE EXPORTS  
+// =============================================================================
 
-// Export legacy types for backward compatibility
+// Core Analytics Types
+export type {
+  AnalyticsEvent as CoreAnalyticsEvent,
+  AnalyticsMetrics,
+  EventData,
+  UserMetrics,
+  SystemMetrics,
+  PerformanceMetrics
+} from './analytics-core.types';
+
+// Enhanced Analytics Types
+export type {
+  FeatureUsage,
+  FeatureInteraction,
+  FeatureConfig,
+  UserExperience,
+  UserPersonality,
+  FeaturePersonalityAnalysis
+} from './enhanced-analytics';
+
+// Portal Analytics Types  
+export type {
+  PortalUrls,
+  PortalAnalytics,
+  URLPlacement,
+  QRCodeType,
+  QRCodeStyling,
+  QRCodeAnalytics
+} from './portal-analytics';
+
+// External Data Analytics Types
+export type {
+  ExternalDataUsageEvent,
+  ExternalDataSource,
+  ExternalDataMetrics,
+  ExternalDataAnalytics
+} from './external-data-analytics.types';
+
+// Cohort Types
+export type {
+  CohortType,
+  CohortRetentionData,
+  CohortRevenueData,
+  CohortSegmentation
+} from './cohort.types';
+
+// Revenue Types
+export type {
+  RevenueStreamType,
+  RevenueData,
+  RevenueProjection,
+  RevenueComparison
+} from './revenue.types';
+
+// Dashboard Types
+export type {
+  DashboardMetric,
+  DashboardConfig as ModernDashboardConfig,
+  DashboardWidget as ModernDashboardWidget,
+  DashboardLayout
+} from './dashboard.types';
+
+// Comprehensive Types (when available)
+try {
+  export * from './tracking.types';
+} catch (e) {
+  // Types not available in this build
+}
+
+try {
+  export * from './privacy.types';
+} catch (e) {
+  // Types not available in this build
+}
+
+try {
+  export * from './ab-testing.types';
+} catch (e) {
+  // Types not available in this build
+}
+
+try {
+  export * from './business-intelligence.types';
+} catch (e) {
+  // Types not available in this build  
+}
+
+// =============================================================================
+// ALL TYPE EXPORTS (for maximum compatibility)
+// =============================================================================
 export * from './analytics.types';
 export * from './revenue.types';
 export * from './cohort.types';
 export * from './dashboard.types';
+export * from './user-outcomes';
+
+// =============================================================================
+// VERSION
+// =============================================================================
+export const ANALYTICS_TYPES_VERSION = '1.0.0';
