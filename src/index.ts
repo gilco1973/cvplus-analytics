@@ -2,26 +2,41 @@
 // Advanced analytics, revenue tracking, and business intelligence
 
 // Services
-export * from './services/revenue-analytics.service';
-export * from './services/cohort-analysis.service';
+export { 
+  RevenueAnalyticsService,
+  revenueAnalyticsService,
+  type DateRange,
+  type RevenueMetrics as AnalyticsRevenueMetrics,
+  type CohortData,
+  type GrowthData
+} from './services/revenue-analytics.service';
+
+export {
+  CohortAnalysisService,
+  cohortAnalysisService,
+  type CohortAnalysisParams,
+  type CohortMetrics as AnalyticsCohortMetrics,
+  type CohortPeriod,
+  type CohortComparison
+} from './services/cohort-analysis.service';
 
 // Functions
-export * from './functions/getRevenueMetrics';
+export { getRevenueMetrics } from './functions/getRevenueMetrics';
 
-// Types
-export * from './types';
+// Types (specific exports to avoid conflicts)
+// export * from './types';
 
-// Constants  
-export * from './constants';
+// Constants (specific exports to avoid conflicts)
+// export * from './constants';
 
-// Utils
-export * from './utils';
+// Utils (specific exports to avoid conflicts)
+// export * from './utils';
 
 // Main Analytics Service
 export class AnalyticsService {
   static initialized = false;
   
-  static async initialize(config?: any) {
+  static async initialize() {
     // Initialize analytics service
     this.initialized = true;
   }

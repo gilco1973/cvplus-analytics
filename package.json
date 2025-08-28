@@ -14,9 +14,12 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@cvplus/core": "file:../core",
+    "@cvplus/auth": "file:../auth",
     "firebase": "^10.7.0",
     "firebase-admin": "^12.0.0",
-    "firebase-functions": "^5.0.1"
+    "firebase-functions": "^5.0.1",
+    "stripe": "^14.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

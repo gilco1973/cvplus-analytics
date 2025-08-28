@@ -11,8 +11,8 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, isAdmin } from '../../middleware/authGuard';
-import { revenueAnalyticsService, DateRange } from '../../services/analytics/revenue-analytics.service';
+import { requireAuth, isAdmin } from '../middleware/auth.middleware';
+import { revenueAnalyticsService, DateRange } from '../services/revenue-analytics.service';
 
 interface RevenueMetricsRequest {
   dateRange?: {

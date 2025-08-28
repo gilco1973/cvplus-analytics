@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['cjs', 'esm'],
-  dts: true,
+  dts: false, // Temporarily disable DTS generation
   clean: true,
   sourcemap: true,
   minify: false,
@@ -11,6 +11,9 @@ export default defineConfig({
   external: [
     'firebase',
     'firebase-admin', 
-    'firebase-functions'
+    'firebase-functions',
+    '@cvplus/core',
+    '@cvplus/auth',
+    'stripe'
   ]
 });
