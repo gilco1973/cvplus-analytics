@@ -175,4 +175,4 @@ export interface PerformanceMetrics {
 }
 
 // Type unions for easier handling
-export type AnalyticsTypes = AnalyticsEvent | AnalyticsMetrics;
+export type CoreAnalyticsTypes = AnalyticsEvent | AnalyticsMetrics;

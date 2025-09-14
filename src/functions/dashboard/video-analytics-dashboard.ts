@@ -11,9 +11,9 @@
 
 import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
-import { PerformanceMonitorService, SystemPerformanceMetrics } from '../services/performance-monitor.service';
-import { AnalyticsEngineService, BusinessMetrics, QualityInsights, UserBehaviorInsights } from '../services/analytics-engine.service';
-import { AlertManagerService } from '../services/alert-manager.service';
+import { PerformanceMonitorService, SystemPerformanceMetrics } from '../../services/performance-monitor.service';
+import { AnalyticsEngineService, BusinessMetrics, QualityInsights, UserBehaviorInsights } from '../../services/analytics-engine.service';
+import { AlertManagerService } from '../../services/alert-manager.service';
 
 // Initialize services
 const performanceMonitor = new PerformanceMonitorService();

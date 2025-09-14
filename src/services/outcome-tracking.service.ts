@@ -9,7 +9,7 @@
  * @version 1.0.0
  */
 
-import { BaseService } from '../shared/base-service';
+import { BaseService, ServiceConfig } from '../shared/base-service';
 import { UserOutcome, OutcomeEvent } from '../types/user-outcomes';
 import { AnalyticsEvent } from '../types/analytics';
 import { Logger } from '../shared/logger';
@@ -17,7 +17,7 @@ import { Logger } from '../shared/logger';
 /**
  * Outcome tracking configuration interface
  */
-export interface OutcomeTrackingConfig {
+export interface OutcomeTrackingConfig extends ServiceConfig {
   enableFollowUpReminders: boolean;
   followUpIntervalDays: number[];
   enableMLDataCollection: boolean;
@@ -78,11 +78,10 @@ export class OutcomeTrackingService extends BaseService {
   private config: OutcomeTrackingConfig;
 
   constructor(config?: Partial<OutcomeTrackingConfig>) {
-    super('OutcomeTrackingService');
-    this.logger = new Logger('OutcomeTrackingService');
-    
-    // Default configuration
-    this.config = {
+    const fullConfig: OutcomeTrackingConfig = {
+      name: 'OutcomeTrackingService',
+      version: '1.0.0',
+      enabled: true,
       enableFollowUpReminders: true,
       followUpIntervalDays: [7, 14, 30],
       enableMLDataCollection: true,
@@ -94,6 +93,9 @@ export class OutcomeTrackingService extends BaseService {
       },
       ...config
     };
+    super(fullConfig);
+    this.logger = new Logger('OutcomeTrackingService');
+    this.config = fullConfig;
   }
 
   /**
@@ -377,6 +379,25 @@ export class OutcomeTrackingService extends BaseService {
    */
   private getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((current, key) => current?.[key], obj);
+  }
+
+  // Implement abstract methods from BaseService
+  protected async onInitialize(): Promise<void> {
+    this.logger.info('Initializing OutcomeTrackingService');
+    // Add any initialization logic here
+  }
+
+  protected async onCleanup(): Promise<void> {
+    this.logger.info('Cleaning up OutcomeTrackingService');
+    // Add any cleanup logic here
+  }
+
+  protected async onHealthCheck(): Promise<Partial<any>> {
+    return {
+      status: 'healthy',
+      outcomeTracking: 'operational',
+      mlDataCollection: this.config.enableMLDataCollection ? 'enabled' : 'disabled'
+    };
   }
 }
 

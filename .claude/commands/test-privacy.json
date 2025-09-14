@@ -1,0 +1,6 @@
+{
+  "name": "test-privacy",
+  "description": "Run privacy compliance and GDPR validation tests",
+  "command": "npm run test -- --grep 'privacy|gdpr|consent' && node scripts/test/privacy-validation.js",
+  "category": "analytics"
+}

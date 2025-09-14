@@ -3,12 +3,24 @@ import { logger } from 'firebase-functions';
 import * as admin from 'firebase-admin';
 // Import admin types from admin submodule
 // Temporary stub - will be replaced with proper admin integration
-type AdminRole = 'super_admin' | 'admin' | 'moderator';
-type AdminLevel = number;
+enum AdminRole {
+  SUPER_ADMIN = 'super_admin',
+  ADMIN = 'admin',
+  MODERATOR = 'moderator'
+}
+
+enum AdminLevel {
+  L1_SUPPORT = 1,
+  L2_MODERATOR = 2,
+  L3_ADMIN = 3,
+  L4_SUPER_ADMIN = 4,
+  L5_SYSTEM_ADMIN = 5
+}
 interface AdminPermissions {
   canManageUsers: boolean;
   canViewAnalytics: boolean;
   canModifySettings: boolean;
+  canModerateContent: boolean;
 }
 
 

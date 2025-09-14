@@ -173,30 +173,11 @@ export type {
   DashboardLayout
 } from './dashboard.types';
 
-// Comprehensive Types (when available)
-try {
-  export * from './tracking.types';
-} catch (e) {
-  // Types not available in this build
-}
-
-try {
-  export * from './privacy.types';
-} catch (e) {
-  // Types not available in this build
-}
-
-try {
-  export * from './ab-testing.types';
-} catch (e) {
-  // Types not available in this build
-}
-
-try {
-  export * from './business-intelligence.types';
-} catch (e) {
-  // Types not available in this build  
-}
+// Comprehensive Types (conditional exports removed - use explicit imports)
+// export * from './tracking.types';
+// export * from './privacy.types';
+// export * from './ab-testing.types';
+// export * from './business-intelligence.types';
 
 // =============================================================================
 // ALL TYPE EXPORTS (for maximum compatibility)

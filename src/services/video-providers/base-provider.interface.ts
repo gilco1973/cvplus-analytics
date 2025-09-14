@@ -52,3 +52,26 @@ export interface VideoEvent {
   timestamp: Date;
   metadata?: Record<string, any>;
 }
+
+export interface VideoGenerationResult {
+  success: boolean;
+  videoId?: string;
+  error?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface VideoGenerationOptions {
+  userId: string;
+  template?: string;
+  quality?: 'low' | 'medium' | 'high';
+  duration?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface ProviderPerformanceMetrics {
+  responseTime: number;
+  successRate: number;
+  errorRate: number;
+  throughput: number;
+  availability: number;
+}

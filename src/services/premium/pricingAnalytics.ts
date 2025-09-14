@@ -10,7 +10,7 @@
 import { Logger } from '../../shared/logger';
 
 const logger = new Logger();
-import { BaseService } from '../../shared/base-service';
+import { BaseService, ServiceConfig } from '../../shared/base-service';
 
 export interface PricingPerformance {
   timeframe: TimeRange;
@@ -180,6 +180,10 @@ export interface RiskFactor {
  * Provides comprehensive pricing performance analysis and optimization recommendations
  */
 export class PricingAnalyticsService extends BaseService {
+  
+  constructor(config: ServiceConfig) {
+    super(config);
+  }
   
   /**
    * Generate comprehensive pricing performance report

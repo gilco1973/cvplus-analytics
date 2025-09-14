@@ -1,0 +1,6 @@
+{
+  "name": "analyze-performance",
+  "description": "Run performance analysis and benchmarking for analytics system",
+  "command": "node scripts/test/performance-benchmark.js && npm run build && npm run type-check",
+  "category": "analytics"
+}

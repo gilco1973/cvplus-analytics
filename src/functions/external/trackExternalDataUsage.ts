@@ -12,13 +12,13 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { corsOptions } from '../config/cors';
-import { requireAuth } from '../middleware/authGuard';
+import { corsOptions } from '../../config/cors';
+import { requireAuth } from '../../middleware/authGuard';
 import { 
   ExternalDataUsageEvent,
   UsageTrackingRequest,
   ExternalDataUsageStats 
-} from '../types/external-data-analytics.types';
+} from '../../types/external-data-analytics.types';
 
 const db = getFirestore();
 

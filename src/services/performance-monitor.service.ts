@@ -10,7 +10,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import { config } from '../config/environment';
+import config from '../config/environment';
 import { AnalyticsEvent, AnalyticsMetrics } from '../types/analytics';
 import { 
   VideoGenerationResult, 

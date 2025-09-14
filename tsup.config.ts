@@ -14,6 +14,7 @@ export default defineConfig({
     'firebase-functions',
     '@cvplus/core',
     '@cvplus/auth',
+    '@cvplus/i18n',
     'stripe'
   ]
 });

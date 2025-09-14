@@ -20,7 +20,7 @@ const authConfig: AuthConfig = {
     max: 100 // limit each IP to 100 requests per windowMs
   },
   security: {
-    enforcePasswordComplexity: true,
+    enforcePasswordPolicy: true,
     minPasswordLength: 8,
     requireSpecialCharacters: true,
     preventPasswordReuse: 5,

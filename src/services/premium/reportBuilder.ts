@@ -10,7 +10,7 @@
 import { Logger } from '../../shared/logger';
 
 const logger = new Logger();
-import { BaseService } from '../../shared/base-service';
+import { BaseService, ServiceConfig } from '../../shared/base-service';
 import { db } from '../../config/firebase';
 
 export interface CustomReport {
@@ -227,6 +227,10 @@ export interface GlobalFilter {
 export class ReportBuilderService extends BaseService {
   private readonly REPORTS_COLLECTION = 'custom_reports';
   private readonly DASHBOARDS_COLLECTION = 'dashboards';
+
+  constructor(config: ServiceConfig) {
+    super(config);
+  }
 
   /**
    * Create new custom report

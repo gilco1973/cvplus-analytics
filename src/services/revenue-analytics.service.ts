@@ -49,13 +49,13 @@ export interface GrowthData {
   expandedRevenue: number;
 }
 
-interface CachedMetric {
+export interface CachedMetric {
   data: any;
   timestamp: number;
   ttl: number;
 }
 
-interface SubscriptionData {
+export interface SubscriptionData {
   userId: string;
   tier: 'free' | 'premium' | 'enterprise';
   status: 'active' | 'cancelled' | 'expired' | 'grace_period';
@@ -67,7 +67,7 @@ interface SubscriptionData {
   features: string[];
 }
 
-interface PaymentData {
+export interface PaymentData {
   userId: string;
   amount: number;
   currency: string;

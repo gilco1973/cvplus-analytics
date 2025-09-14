@@ -1,0 +1,6 @@
+{
+  "name": "test-tracking",
+  "description": "Run comprehensive analytics tracking validation tests",
+  "command": "npm run test -- --grep 'tracking|analytics-sdk|privacy-compliance'",
+  "category": "analytics"
+}

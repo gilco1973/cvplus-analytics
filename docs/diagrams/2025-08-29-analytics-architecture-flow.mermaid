@@ -1,0 +1,103 @@
+graph TB
+    %% CVPlus Analytics Architecture Flow
+    
+    subgraph "Analytics Module Architecture"
+        direction TB
+        
+        %% Core Analytics Services
+        subgraph "Core Analytics Layer"
+            AE[Analytics Engine Service]
+            BI[Business Intelligence Service]
+            PC[Privacy Compliance Service]
+            TS[Tracking Service]
+        end
+        
+        %% Data Processing Layer
+        subgraph "Data Processing Layer"
+            ML[ML Pipeline Service]
+            CA[Cohort Analysis Service]
+            AB[A/B Testing Service]
+            PM[Performance Monitor]
+        end
+        
+        %% Storage and Cache Layer
+        subgraph "Storage & Cache Layer"
+            AC[Analytics Cache Service]
+            RC[Redis Client]
+            BQ[(BigQuery)]
+            FS[(Firestore)]
+        end
+        
+        %% External Integrations
+        subgraph "External Analytics"
+            GA[Google Analytics]
+            FB[Facebook Pixel]
+            ED[External Data APIs]
+        end
+    end
+    
+    %% CVPlus Module Dependencies
+    subgraph "CVPlus Ecosystem"
+        CORE[Core Module]
+        AUTH[Auth Module]
+        I18N[I18n Module]
+        PREMIUM[Premium Module]
+        ADMIN[Admin Module]
+    end
+    
+    %% User Interactions
+    subgraph "User Touchpoints"
+        UI[User Interface]
+        API[Analytics API]
+        DASH[Analytics Dashboard]
+    end
+    
+    %% Data Flow Connections
+    UI --> TS
+    API --> AE
+    DASH --> BI
+    
+    %% Core Service Dependencies
+    CORE --> AE
+    AUTH --> AE
+    I18N --> BI
+    
+    %% Internal Service Connections
+    TS --> AE
+    AE --> BI
+    AE --> PC
+    AE --> ML
+    
+    %% Data Processing Flow
+    BI --> CA
+    AE --> AB
+    ML --> PM
+    
+    %% Storage Connections
+    AE --> AC
+    AC --> RC
+    BI --> BQ
+    TS --> FS
+    
+    %% External Data Integration
+    ED --> ML
+    GA --> AE
+    FB --> TS
+    
+    %% Higher Layer Dependencies
+    AE --> PREMIUM
+    BI --> ADMIN
+    PC --> PREMIUM
+    
+    %% Styling
+    classDef coreService fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef dataService fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef storageService fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef externalService fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef moduleService fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class AE,BI,PC,TS coreService
+    class ML,CA,AB,PM dataService
+    class AC,RC,BQ,FS storageService
+    class GA,FB,ED externalService
+    class CORE,AUTH,I18N,PREMIUM,ADMIN moduleService

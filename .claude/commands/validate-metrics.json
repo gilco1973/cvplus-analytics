@@ -1,0 +1,6 @@
+{
+  "name": "validate-metrics",
+  "description": "Validate analytics metrics calculation and data accuracy",
+  "command": "npx vitest run src/__tests__/integration.test.ts src/services/**/*.test.ts",
+  "category": "analytics"
+}

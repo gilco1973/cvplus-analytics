@@ -9,7 +9,7 @@
 
 import { https } from 'firebase-functions/v2';
 import { logger } from 'firebase-functions/v2';
-import { ReportBuilderService } from '../../services/premium/analytics/reportBuilder';
+import { ReportBuilderService } from '../../services/premium/reportBuilder';
 import { requireAuth } from '../../middleware/authGuard';
 import { enhancedPremiumGuard } from '../../middleware/enhancedPremiumGuard';
 
