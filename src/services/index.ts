@@ -1,79 +1,40 @@
-// CVPlus Analytics Services
-// Comprehensive analytics, revenue tracking, and business intelligence services
+/**
+ * Analytics Services - Backward Compatibility Re-exports
+ *
+ * MIGRATION COMPLETE: These services have been successfully migrated to @cvplus/analytics
+ * This file now provides backward compatibility by re-exporting from the target package.
+ *
+ * Domain: Analytics, Performance Monitoring, Metrics
+ * Target Submodule: @cvplus/analytics ✅ MIGRATED
+ * Migration Phase: 4B ✅ COMPLETE
+ */
 
-// =============================================================================
-// CORE ANALYTICS SERVICES
-// =============================================================================
-export { 
-  revenueAnalyticsService, 
-  RevenueAnalyticsService,
-  type DateRange,
-  type RevenueMetrics,
-  type CohortData,
-  type GrowthData,
-  type SubscriptionData,
-  type PaymentData,
-  type CachedMetric 
-} from './revenue-analytics.service';
-
-export { 
-  cohortAnalysisService, 
-  CohortAnalysisService,
-  type CohortAnalysisParams,
-  type CohortMetrics,
-  type CohortPeriod,
-  type CohortComparison,
-  type CohortTrend 
-} from './cohort-analysis.service';
-
-export {
-  AnalyticsEngineService,
-  type BusinessMetrics,
-  type TrendAnalysis,
-  type UserBehaviorInsights,
-  type QualityInsights
-} from './analytics-engine.service';
-
-// =============================================================================
-// CACHE SERVICES
-// =============================================================================
+// Re-export from migrated @cvplus/analytics package for backward compatibility
 export {
   analyticsCacheService,
   AnalyticsCacheService,
-  type CacheConfig,
-  type CacheEntry,
-  type CacheStats
-} from './cache/analytics-cache.service';
-
-// =============================================================================
-// PREMIUM ANALYTICS SERVICES
-// =============================================================================
-export {
-  PricingAnalyticsService,
-  type PricingMetrics,
-  type PricingOptimizationResult,
-  type PricingTest,
-  type ConversionData
-} from './premium/pricingAnalytics';
+  type AnalyticsQuery,
+  type AnalyticsQueryType,
+  type CacheOptions
+} from '@cvplus/analytics';
 
 export {
-  ReportBuilderService,
-  type ReportConfig,
-  type ReportData,
-  type ReportTemplate,
-  type ReportMetadata
-} from './premium/reportBuilder';
+  cachePerformanceMonitor,
+  CachePerformanceMonitor,
+  type CacheMetrics,
+  type PerformanceThresholds,
+  type CacheReport
+} from '@cvplus/analytics';
 
-// =============================================================================
-// VERSION
-// =============================================================================
+// Legacy type aliases for backward compatibility
+export type {
+  AnalyticsQuery as AnalyticsResult,
+  CacheOptions as AnalyticsCacheMetrics
+} from '@cvplus/analytics';
 
-// Outcome Tracking Service
-export {
-  OutcomeTrackingService,
-  outcomeTrackingService,
-  type OutcomeTrackingConfig,
-  type OutcomeAnalytics,
-  type FollowUpReminder
-} from './outcome-tracking.service';
-export const ANALYTICS_SERVICES_VERSION = '1.0.0';
+export type {
+  CacheReport as CacheHealthStatus,
+  CacheReport as CachePerformanceReport,
+  CacheMetrics as CacheAlert,
+  CacheMetrics as CacheRecommendation
+} from '@cvplus/analytics';

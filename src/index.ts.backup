@@ -6,8 +6,8 @@
 // =============================================================================
 
 // Legacy/Core Analytics Services (always available)
-export {
-  revenueAnalyticsService,
+export { 
+  revenueAnalyticsService, 
   RevenueAnalyticsService,
   type DateRange,
   type RevenueMetrics,
@@ -15,35 +15,18 @@ export {
   type GrowthData,
   type SubscriptionData,
   type PaymentData,
-  type CachedMetric
+  type CachedMetric 
 } from './services/revenue-analytics.service';
 
-export {
-  cohortAnalysisService,
+export { 
+  cohortAnalysisService, 
   CohortAnalysisService,
   type CohortAnalysisParams,
   type CohortMetrics,
   type CohortPeriod,
   type CohortComparison,
-  type CohortTrend
+  type CohortTrend 
 } from './services/cohort-analysis.service';
-
-// Performance and Cache Services
-export {
-  analyticsCacheService,
-  AnalyticsCacheService,
-  type AnalyticsQuery,
-  type AnalyticsQueryType,
-  type CacheOptions
-} from './services/analytics-cache.service';
-
-export {
-  cachePerformanceMonitor,
-  CachePerformanceMonitor,
-  type CacheMetrics,
-  type PerformanceThresholds,
-  type CacheReport
-} from './services/cache-performance-monitor.service';
 
 // Advanced Services (when available) - conditional exports removed
 // export { CVPlusAnalyticsSDK } from './services/analytics-sdk.service';
@@ -70,8 +53,8 @@ export {
 
 // Migration Stub Functions
 export const videoAnalyticsDashboard = onRequest(async (request, response) => {
-  response.json({
-    message: 'Video analytics dashboard - successfully migrated to analytics module',
+  response.json({ 
+    message: 'Video analytics dashboard - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     version: '1.0.0'
@@ -90,8 +73,8 @@ export {
 } from './functions/external/getExternalDataAnalytics';
 
 export const predictChurn = onCall(async (data) => {
-  return {
-    message: 'Predict churn - successfully migrated to analytics module',
+  return { 
+    message: 'Predict churn - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -108,8 +91,8 @@ export {
 } from './functions/conversion/getConversionMetrics';
 
 export const batchTrackingEvents = onCall(async (data) => {
-  return {
-    message: 'Batch tracking events - successfully migrated to analytics module',
+  return { 
+    message: 'Batch tracking events - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -117,8 +100,8 @@ export const batchTrackingEvents = onCall(async (data) => {
 });
 
 export const getRealtimeUsageStats = onCall(async (data) => {
-  return {
-    message: 'Get realtime usage stats - successfully migrated to analytics module',
+  return { 
+    message: 'Get realtime usage stats - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -126,8 +109,8 @@ export const getRealtimeUsageStats = onCall(async (data) => {
 });
 
 export const createCustomReport = onCall(async (data) => {
-  return {
-    message: 'Create custom report - successfully migrated to analytics module',
+  return { 
+    message: 'Create custom report - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -135,8 +118,8 @@ export const createCustomReport = onCall(async (data) => {
 });
 
 export const generateReportData = onCall(async (data) => {
-  return {
-    message: 'Generate report data - successfully migrated to analytics module',
+  return { 
+    message: 'Generate report data - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -144,8 +127,8 @@ export const generateReportData = onCall(async (data) => {
 });
 
 export const createDashboard = onCall(async (data) => {
-  return {
-    message: 'Create dashboard - successfully migrated to analytics module',
+  return { 
+    message: 'Create dashboard - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -153,8 +136,8 @@ export const createDashboard = onCall(async (data) => {
 });
 
 export const scheduleReportDelivery = onCall(async (data) => {
-  return {
-    message: 'Schedule report delivery - successfully migrated to analytics module',
+  return { 
+    message: 'Schedule report delivery - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -162,8 +145,8 @@ export const scheduleReportDelivery = onCall(async (data) => {
 });
 
 export const generateWhiteLabelReport = onCall(async (data) => {
-  return {
-    message: 'Generate white label report - successfully migrated to analytics module',
+  return { 
+    message: 'Generate white label report - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -171,8 +154,8 @@ export const generateWhiteLabelReport = onCall(async (data) => {
 });
 
 export const exportReport = onCall(async (data) => {
-  return {
-    message: 'Export report - successfully migrated to analytics module',
+  return { 
+    message: 'Export report - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -180,8 +163,8 @@ export const exportReport = onCall(async (data) => {
 });
 
 export const getDataSources = onCall(async (data) => {
-  return {
-    message: 'Get data sources - successfully migrated to analytics module',
+  return { 
+    message: 'Get data sources - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -189,8 +172,8 @@ export const getDataSources = onCall(async (data) => {
 });
 
 export const getReportTemplates = onCall(async (data) => {
-  return {
-    message: 'Get report templates - successfully migrated to analytics module',
+  return { 
+    message: 'Get report templates - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -198,8 +181,8 @@ export const getReportTemplates = onCall(async (data) => {
 });
 
 export const validateReportConfig = onCall(async (data) => {
-  return {
-    message: 'Validate report config - successfully migrated to analytics module',
+  return { 
+    message: 'Validate report config - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -207,8 +190,8 @@ export const validateReportConfig = onCall(async (data) => {
 });
 
 export const analyticsHealthCheck = onCall(async (data) => {
-  return {
-    message: 'Analytics health check - successfully migrated to analytics module',
+  return { 
+    message: 'Analytics health check - successfully migrated to analytics module', 
     status: 'active',
     module: '@cvplus/analytics',
     data
@@ -231,14 +214,14 @@ export * from './constants';
 export class AnalyticsService {
   private static initialized = false;
   private static instance: AnalyticsService;
-
+  
   static getInstance(): AnalyticsService {
     if (!AnalyticsService.instance) {
       AnalyticsService.instance = new AnalyticsService();
     }
     return AnalyticsService.instance;
   }
-
+  
   static async initialize(config?: {
     apiKey?: string;
     environment?: 'development' | 'staging' | 'production';
@@ -258,28 +241,28 @@ export class AnalyticsService {
       console.warn('[CVPlus Analytics] Service already initialized');
       return;
     }
-
+    
     // Initialize core analytics services
     this.initialized = true;
     console.log('[CVPlus Analytics] Platform initialized successfully');
   }
-
+  
   static isInitialized(): boolean {
     return this.initialized;
   }
-
+  
   static async track(eventName: string, properties?: any): Promise<void> {
     console.log('[CVPlus Analytics] Tracking event:', eventName, properties);
   }
-
+  
   static async page(category?: string, name?: string, properties?: any): Promise<void> {
     console.log('[CVPlus Analytics] Tracking page:', category, name, properties);
   }
-
+  
   static async identify(userId: string, traits?: any): Promise<void> {
     console.log('[CVPlus Analytics] Identifying user:', userId, traits);
   }
-
+  
   static getStatus() {
     return {
       initialized: this.initialized,
@@ -306,8 +289,6 @@ export const ANALYTICS_PLATFORM = {
     'Event Tracking',
     'Revenue Analytics',
     'Cohort Analysis',
-    'Performance Caching',
-    'Cache Monitoring',
     'Business Intelligence',
     'Migration Compatibility'
   ]
