@@ -216,34 +216,3 @@ export interface AnalyticsResponse<T> {
     period: string;
   };
 }
-
-// Additional missing types for compatibility
-export interface ExternalDataSource {
-  sourceId: string;
-  name: string;
-  type: 'api' | 'database' | 'file' | 'stream';
-  status: 'active' | 'inactive' | 'error';
-  lastUpdated: Date;
-  config: Record<string, any>;
-  metrics: {
-    requestCount: number;
-    successRate: number;
-    averageLatency: number;
-    errorCount: number;
-  };
-}
-
-export interface ExternalDataMetrics {
-  sourceId: string;
-  period: {
-    start: Date;
-    end: Date;
-  };
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  averageLatency: number;
-  dataVolume: number; // bytes
-  costPerRequest?: number;
-  errorTypes: Record<string, number>;
-}

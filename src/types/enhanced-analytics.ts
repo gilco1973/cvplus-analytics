@@ -8,103 +8,56 @@
  * @version 1.0.0
  */
 
-// Feature Analytics Types
-export interface FeatureUsage {
-  featureId: string;
+/**
+ * Public CV profile data
+ */
+export interface PublicCVProfile {
+  id: string;
   userId: string;
-  usageCount: number;
-  lastUsed: Date;
-  totalTime: number;
-  completionRate: number;
-  errorRate: number;
-  conversionEvents: number;
-}
-
-export interface FeatureInteraction {
-  interactionId: string;
-  featureId: string;
-  userId: string;
-  interactionType: 'click' | 'view' | 'complete' | 'error' | 'abandon';
-  timestamp: Date;
-  duration: number;
-  metadata?: Record<string, any>;
-}
-
-export interface FeatureConfig {
-  featureId: string;
-  name: string;
-  enabled: boolean;
-  version: string;
-  rolloutPercentage: number;
-  targetUserSegments?: string[];
-  config: Record<string, any>;
-  analytics: {
-    trackUsage: boolean;
-    trackPerformance: boolean;
-    trackConversions: boolean;
+  jobId: string;
+  slug: string;
+  isPublic: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  metaTags?: Record<string, string>;
+  customDomain?: string;
+  publicUrl?: string;
+  allowContactForm?: boolean;
+  showAnalytics?: boolean;
+  contactEmail?: string;
+  parsedCV?: any; // Parsed CV data with PII masking
+  features?: Record<string, any>; // Public profile features
+  template?: string; // Template name
+  qrCodeUrl?: string; // QR code URL for the profile
+  analytics: PublicProfileAnalytics;
+  socialSharing: {
+    enabled: boolean;
+    platforms: string[];
+    customMessage?: string;
   };
-}
-
-export interface UserExperience {
-  userId: string;
-  experienceId: string;
-  sessionId: string;
-  journey: {
-    steps: string[];
-    currentStep: number;
-    completionRate: number;
+  privacySettings?: {
+    enabled?: boolean;
+    level?: 'public' | 'private' | 'restricted';
+    maskingRules?: {
+      maskEmail?: boolean;
+      maskPhone?: boolean;
+      maskAddress?: boolean;
+      name?: boolean;
+    };
+    publicEmail?: boolean;
+    publicPhone?: boolean;
   };
-  satisfaction: {
-    score: number;
-    feedback?: string;
-    timestamp: Date;
+  additionalInfo?: {
+    availabilityCalendar?: any;
+    testimonials?: any[];
+    personalityProfile?: any;
+    skillsVisualization?: any;
+    certifications?: any[];
+    contactEmail?: string;
   };
-  performance: {
-    loadTimes: number[];
-    errorCount: number;
-    completionTime: number;
-  };
-}
-
-export interface UserPersonality {
-  userId: string;
-  profileId: string;
-  traits: {
-    technical: number;
-    creative: number;
-    analytical: number;
-    collaborative: number;
-    detail_oriented: number;
-  };
-  preferences: {
-    interface_complexity: 'simple' | 'moderate' | 'advanced';
-    feature_discovery: 'guided' | 'explorative';
-    feedback_frequency: 'minimal' | 'moderate' | 'frequent';
-  };
-  confidence: number;
-  lastUpdated: Date;
-}
-
-export interface FeaturePersonalityAnalysis {
-  analysisId: string;
-  userId: string;
-  featureId: string;
-  personalityMatch: {
-    score: number;
-    factors: Record<string, number>;
-    recommendations: string[];
-  };
-  usage_prediction: {
-    likelihood: number;
-    frequency: 'low' | 'medium' | 'high';
-    optimal_timing: string[];
-  };
-  customization_suggestions: {
-    interface_adjustments: Record<string, any>;
-    feature_variations: string[];
-  };
-  confidence: number;
-  timestamp: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastViewedAt?: Date;
 }
 
 /**
@@ -149,6 +102,23 @@ export interface FeatureAnalytics {
   views?: number;
   qrScans?: number;
   contactSubmissions?: number;
+}
+
+/**
+ * Feature interaction tracking
+ */
+export interface FeatureInteraction {
+  type: string; // 'view', 'click', 'submit', etc.
+  timestamp: Date;
+  duration?: number; // For time-based interactions
+  metadata?: Record<string, any>;
+  userAgent?: string;
+  ipHash?: string; // Hashed IP for privacy
+  // Legacy properties for backward compatibility
+  featureId?: string;
+  userId?: string;
+  jobId?: string;
+  interactionType?: 'view' | 'click' | 'download' | 'share' | 'contact';
 }
 
 /**

@@ -216,6 +216,13 @@ export const analyticsHealthCheck = onCall(async (data) => {
 });
 
 // =============================================================================
+// EXTERNAL DATA SERVICES - Migrated from Core
+// =============================================================================
+
+// External Data Integration Services
+export * from './services/external-data';
+
+// =============================================================================
 // TYPE EXPORTS
 // =============================================================================
 export * from './types';

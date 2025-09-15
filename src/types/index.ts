@@ -188,6 +188,11 @@ export * from './cohort.types';
 export * from './dashboard.types';
 export * from './user-outcomes';
 
+// Migrated from Core Module
+export * from './analytics';
+export * from './enhanced-analytics';
+export * from './external-data-analytics.types';
+
 // =============================================================================
 // VERSION
 // =============================================================================

@@ -38,3 +38,10 @@ export type {
   CacheMetrics as CacheAlert,
   CacheMetrics as CacheRecommendation
 } from '@cvplus/analytics';
+
+// =============================================================================
+// EXTERNAL DATA SERVICES - Newly Migrated from Core
+// =============================================================================
+
+// Re-export all external data services
+export * from './external-data';

@@ -21,6 +21,8 @@ interface AdminPermissions {
   canViewAnalytics: boolean;
   canModifySettings: boolean;
   canModerateContent: boolean;
+  canMonitorSystem: boolean;
+  canManageSupport: boolean;
 }
 
 
