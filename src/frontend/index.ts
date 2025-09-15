@@ -7,7 +7,8 @@
  */
 
 // Main Components
-export { default as AnalyticsDashboard } from './components/AnalyticsDashboard';
+// Component exports removed - React components moved to appropriate frontend packages
+// export { default as AnalyticsDashboard } from './components/AnalyticsDashboard';
 
 // Analytics Components (when implemented)
 // export { default as MetricsOverview } from './components/MetricsOverview';

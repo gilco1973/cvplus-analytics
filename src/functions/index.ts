@@ -14,15 +14,16 @@ export { videoAnalyticsDashboard } from './dashboard/video-analytics-dashboard';
 // =============================================================================
 // EXTERNAL DATA ANALYTICS FUNCTIONS
 // =============================================================================
-export { 
-  trackExternalDataUsage,
-  getUserExternalDataUsageStats
-} from './external/trackExternalDataUsage';
+// External functions temporarily commented out - missing files
+// export {
+//   trackExternalDataUsage,
+//   getUserExternalDataUsageStats
+// } from './external/trackExternalDataUsage';
 
-export {
-  getExternalDataAnalytics,
-  getDailyExternalDataAnalytics
-} from './external/getExternalDataAnalytics';
+// export {
+//   getExternalDataAnalytics,
+//   getDailyExternalDataAnalytics
+// } from './external/getExternalDataAnalytics';
 
 // =============================================================================
 // CONVERSION ANALYTICS FUNCTIONS

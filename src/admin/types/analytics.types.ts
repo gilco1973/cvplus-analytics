@@ -4,7 +4,7 @@
  * Types for business analytics, reporting, and insights in the admin dashboard.
  */
 
-import type { TrendData } from './dashboard.types';
+import type { TrendData } from '../../types/dashboard.types';
 
 // ============================================================================
 // Business Analytics Overview

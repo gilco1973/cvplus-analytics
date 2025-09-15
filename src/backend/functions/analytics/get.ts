@@ -5,11 +5,11 @@ import {
   getAnalyticsAggregates,
   getAnalyticsEvents
 } from '../../models/analytics.service';
-import { getUserProfile } from '../../models/user-profile.service';
-import { getPublicProfile } from '../../models/public-profile.service';
-import { getCVJob } from '../../models/cv-job.service';
-import { authenticateUser } from '../../middleware/auth.middleware';
-import { EntityType, AggregationPeriod } from '../../../../shared/types/analytics';
+import { getUserProfile } from '@cvplus/auth';
+import { getPublicProfile } from '@cvplus/public-profiles';
+import { getCVJob } from '@cvplus/cv-processing';
+import { authenticateUser } from '../../middleware/authGuard';
+import { EntityType, AggregationPeriod } from '../../types/analytics.types';
 
 interface AnalyticsRequest {
   period?: AggregationPeriod;

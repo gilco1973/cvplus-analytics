@@ -12,12 +12,12 @@ export type {
 } from './analytics-core.types';
 
 export type {
-  FeatureUsage,
   FeatureInteraction,
-  FeatureConfig,
-  UserExperience,
-  UserPersonality,
-  FeaturePersonalityAnalysis
+  // FeatureUsage,
+  // FeatureConfig,
+  // UserExperience,
+  // UserPersonality,
+  // FeaturePersonalityAnalysis
 } from './enhanced-analytics';
 
 export type {
@@ -32,12 +32,12 @@ export type {
 
 // Import types first to avoid circular dependencies
 import type { AnalyticsEvent as CoreAnalyticsEvent, AnalyticsMetrics } from './analytics-core.types';
-import type { FeatureUsage } from './enhanced-analytics';
+// import type { FeatureUsage } from './enhanced-analytics';
 import type { PortalAnalytics } from './portal-analytics';
 
 // Aggregate type for all analytics types
 export type AnalyticsTypes =
   | CoreAnalyticsEvent
   | AnalyticsMetrics
-  | FeatureUsage
+  // | FeatureUsage
   | PortalAnalytics;
