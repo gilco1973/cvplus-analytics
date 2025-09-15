@@ -141,13 +141,6 @@ export type {
   QRCodeAnalytics
 } from './portal-analytics';
 
-// External Data Analytics Types
-export type {
-  ExternalDataUsageEvent,
-  ExternalDataSource,
-  ExternalDataMetrics,
-  ExternalDataAnalytics
-} from './external-data-analytics.types';
 
 // Cohort Types
 export type {
@@ -191,7 +184,6 @@ export * from './user-outcomes';
 // Migrated from Core Module
 export * from './analytics';
 export * from './enhanced-analytics';
-export * from './external-data-analytics.types';
 
 // =============================================================================
 // VERSION

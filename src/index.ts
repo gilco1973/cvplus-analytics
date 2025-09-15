@@ -78,16 +78,6 @@ export const videoAnalyticsDashboard = onRequest(async (request, response) => {
   });
 });
 
-// External Data Analytics Functions - Import from actual implementations
-export {
-  trackExternalDataUsage,
-  getUserExternalDataUsageStats
-} from './functions/external/trackExternalDataUsage';
-
-export {
-  getExternalDataAnalytics,
-  getDailyExternalDataAnalytics
-} from './functions/external/getExternalDataAnalytics';
 
 export const predictChurn = onCall(async (data) => {
   return {
@@ -101,11 +91,12 @@ export const predictChurn = onCall(async (data) => {
 // Migration stubs removed - functions are imported from actual implementations above
 
 // Conversion Analytics Functions - Import from actual implementations
-export {
-  trackConversionEvent,
-  getConversionMetrics,
-  getBusinessIntelligenceReport
-} from './functions/conversion/getConversionMetrics';
+// TODO: Implement missing conversion functions
+// export {
+//   trackConversionEvent,
+//   getConversionMetrics,
+//   getBusinessIntelligenceReport
+// } from './functions/conversion/getConversionMetrics';
 
 export const batchTrackingEvents = onCall(async (data) => {
   return {
@@ -215,12 +206,6 @@ export const analyticsHealthCheck = onCall(async (data) => {
   };
 });
 
-// =============================================================================
-// EXTERNAL DATA SERVICES - Migrated from Core
-// =============================================================================
-
-// External Data Integration Services
-export * from './services/external-data';
 
 // =============================================================================
 // TYPE EXPORTS

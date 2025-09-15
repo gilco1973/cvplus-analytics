@@ -1,20 +1,23 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: {
+    'index': 'src/index.ts'
+  },
   format: ['cjs', 'esm'],
-  dts: false, // Temporarily disabled due to project structure issues
+  dts: false, // Temporarily disabled - needs missing file fixes
   clean: true,
   sourcemap: true,
   minify: false,
   target: 'node18',
   external: [
     'firebase',
-    'firebase-admin', 
+    'firebase-admin',
     'firebase-functions',
     '@cvplus/core',
     '@cvplus/auth',
     '@cvplus/i18n',
+    '@cvplus/logging',
     'stripe'
   ]
 });

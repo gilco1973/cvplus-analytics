@@ -1,7 +1,7 @@
 {
   "name": "@cvplus/analytics",
   "version": "1.0.0",
-  "description": "CVPlus Analytics Module - Core business intelligence, tracking, and performance analytics",
+  "description": "CVPlus Analytics Module - Advanced analytics, revenue tracking, and business intelligence",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -28,36 +28,23 @@
     "validate-dependencies": "./scripts/validate-dependencies.sh"
   },
   "dependencies": {
-    "@cvplus/auth": "file:../auth",
     "@cvplus/core": "file:../core",
+    "@cvplus/auth": "file:../auth",
     "@cvplus/i18n": "file:../i18n",
-    "@cvplus/logging": "file:../logging",
-    "firebase": "^10.12.0",
-    "firebase-admin": "^12.1.0",
+    "firebase": "^10.7.0",
+    "firebase-admin": "^12.0.0",
     "firebase-functions": "^5.0.1",
     "ioredis": "^5.3.0",
     "stripe": "^15.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.1",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-typescript": "^12.1.1",
-    "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "@vitest/coverage-v8": "^2.1.5",
-    "eslint": "^8.56.0",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.27.4",
-    "tslib": "^2.8.1",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
   },
   "keywords": [
     "cvplus",

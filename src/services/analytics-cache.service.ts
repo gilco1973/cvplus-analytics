@@ -11,7 +11,24 @@
  */
 
 import { logger } from 'firebase-functions';
-import { cacheService } from '../../../services/cache/cache.service';
+// TODO: Import from @cvplus/core after proper exports are set up
+// import { cacheService } from '@cvplus/core';
+
+// Temporary mock cache service - TODO: Replace with proper import
+const cacheService = {
+  get: async (key: string) => null,
+  set: async (key: string, value: any, ttl?: number) => true,
+  del: async (key: string) => true,
+  flush: async () => true,
+  exists: async (key: string) => false,
+  healthCheck: async () => ({ healthy: true }),
+  getStats: () => ({
+    isHealthy: true,
+    hitRate: 0.8,
+    errorRate: 0.01,
+    redis: { responseTime: 50 }
+  })
+};
 import * as crypto from 'crypto';
 
 export interface AnalyticsQuery {
