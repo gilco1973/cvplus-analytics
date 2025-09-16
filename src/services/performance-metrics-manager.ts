@@ -8,12 +8,12 @@
  * @version 1.0.0
   */
 
-import { RecommendationErrorType } from '../../types';
-import type { 
-  PerformanceMetrics, 
+import { RecommendationErrorType } from '../types/analytics-errors';
+import type {
+  PerformanceMetrics,
   RecommendationError,
   CacheStats
-} from '../../types';
+} from '../types/analytics-errors';
 import type { CacheService } from '../cache.service';
 
 // ============================================================================

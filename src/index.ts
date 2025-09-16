@@ -47,6 +47,10 @@ export {
   type CacheReport
 } from './services/cache-performance-monitor.service';
 
+// Migrated from @cvplus/recommendations
+export { CacheStatsManager } from './services/cache-stats-manager';
+export { PerformanceMetricsManager } from './services/performance-metrics-manager';
+
 // Advanced Services (when available) - conditional exports removed
 // export { CVPlusAnalyticsSDK } from './services/analytics-sdk.service';
 // export { default as PrivacyComplianceService } from './services/privacy-compliance.service';

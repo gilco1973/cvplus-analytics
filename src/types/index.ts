@@ -199,6 +199,7 @@ export const ANALYTICS_TYPES_VERSION = '1.0.0';
 export * from './user-outcomes';
 export * from './ml-pipeline';
 export * from './success-prediction';
+export * from './analytics-errors';
 
 // export * from './api'; // TODO: Create api.ts when needed
 // export * from './booking.types'; // TODO: Create booking.types.ts when needed

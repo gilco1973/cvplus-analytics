@@ -11,7 +11,7 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, isAdmin } from '@cvplus/auth/middleware/authGuard';
+import { requireAuth, requireAdmin } from '@cvplus/auth';
 import { churnPredictionService } from '../../services/churn-prediction.service';
 import { retentionAutomationService } from '../../services/retention-automation.service';
 

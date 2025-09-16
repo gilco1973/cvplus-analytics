@@ -9,7 +9,7 @@ import {
 // import { getUserProfile } from '@cvplus/auth';
 // import { getPublicProfile } from '@cvplus/public-profiles';
 // import { getCVJob } from '@cvplus/cv-processing';
-import { requireAuth } from '@cvplus/auth/middleware/authGuard';
+import { requireAuth } from '@cvplus/auth';
 import { EntityType, AggregationPeriod } from '../../../types/analytics.types';
 
 interface AnalyticsRequest {

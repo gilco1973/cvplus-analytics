@@ -8,7 +8,7 @@
  * @version 1.0.0
   */
 
-import type { CacheStats, PerformanceMetrics } from '../../types';
+import type { CacheStats, PerformanceMetrics } from '../types/analytics-errors';
 import type { MemoryManager } from './memory-manager';
 
 export class CacheStatsManager {

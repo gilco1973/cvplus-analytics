@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "CVPlus Analytics Module - Core business intelligence, tracking, and performance analytics",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
+      "types": "./src/index.ts",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
   },

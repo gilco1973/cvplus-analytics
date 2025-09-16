@@ -11,7 +11,7 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, isAdmin } from '@cvplus/auth/middleware/authGuard';
+import { requireAuth, requireAdmin } from '@cvplus/auth';
 import { revenueAnalyticsService, DateRange } from '../services/revenue-analytics.service';
 
 interface RevenueMetricsRequest {
