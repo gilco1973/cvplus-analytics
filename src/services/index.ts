@@ -1,4 +1,4 @@
-/**/**
+/**
  * Analytics Services - Backward Compatibility Re-exports
  *
  * MIGRATION COMPLETE: These services have been successfully migrated to @cvplus/analytics
@@ -7,7 +7,7 @@
  * Domain: Analytics, Performance Monitoring, Metrics
  * Target Submodule: @cvplus/analytics ✅ MIGRATED
  * Migration Phase: 4B ✅ COMPLETE
- */
+  */
 
 // Re-export from migrated @cvplus/analytics package for backward compatibility
 export {

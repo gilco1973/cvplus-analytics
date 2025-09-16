@@ -1,9 +1,9 @@
-/**/**
+/**
  * Fallback Manager Service
  * 
  * Manages fallback predictions when ML services are unavailable,
  * providing heuristic-based predictions and graceful degradation.
- */
+  */
 
 import { SuccessPrediction } from '../../../types/phase2-models';
 // @ts-ignore - Unused imports preserved for future use
@@ -20,7 +20,7 @@ export class FallbackManager {
 
   /**
    * Generate fallback prediction when ML services fail
-   */
+    */
   async generateFallbackPrediction(request: PredictionRequest): Promise<SuccessPrediction> {
     
     try {
@@ -75,7 +75,7 @@ export class FallbackManager {
 
   /**
    * Get fallback service health status
-   */
+    */
   async getHealthStatus(): Promise<boolean> {
     try {
       return await this.heuristicPredictor.healthCheck();

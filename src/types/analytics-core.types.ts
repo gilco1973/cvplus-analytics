@@ -1,9 +1,9 @@
-/**/**
+/**
  * Analytics Types
  * Extracted from phase2-models.ts for better modularity
  * 
  * Analytics events, metrics, and performance tracking.
- */
+  */
 
 // ===============================
 // ANALYTICS AND METRICS MODELS

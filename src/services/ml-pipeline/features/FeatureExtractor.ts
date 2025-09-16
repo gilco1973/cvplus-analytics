@@ -5,7 +5,7 @@
  * 
  * Coordinates CV, job matching, market, behavior, and derived feature extraction
  * while managing caching and performance optimization.
- */
+  */
 
 import { FeatureVector } from '../../../types/phase2-models';
 import { PredictionRequest } from '../core/MLPipelineOrchestrator';
@@ -30,7 +30,7 @@ export class FeatureExtractor {
 
   /**
    * Extract comprehensive features from CV and job context
-   */
+    */
   async extractFeatures(request: PredictionRequest): Promise<FeatureVector> {
     const { cv, jobDescription, industry, location } = request;
     // @ts-ignore - targetRole preserved for future feature extraction use
@@ -94,7 +94,7 @@ export class FeatureExtractor {
 
   /**
    * Validate feature vector completeness and quality
-   */
+    */
   async validateFeatures(features: FeatureVector): Promise<{
     isValid: boolean;
     completeness: number;
@@ -162,7 +162,7 @@ export class FeatureExtractor {
 
   /**
    * Get feature importance scores for interpretability
-   */
+    */
   async getFeatureImportance(features: FeatureVector): Promise<Record<string, number>> {
     const importance: Record<string, number> = {};
     
@@ -196,7 +196,7 @@ export class FeatureExtractor {
 
   /**
    * Health check for feature extraction service
-   */
+    */
   async healthCheck(): Promise<boolean> {
     try {
       // Check all feature services

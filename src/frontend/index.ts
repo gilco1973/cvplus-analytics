@@ -1,10 +1,10 @@
-/**/**
+/**
  * CVPlus Analytics Frontend Components
  *
  * Main exports for the analytics submodule frontend components.
  * These components provide comprehensive analytics and insights
  * for CVPlus profiles and user engagement.
- */
+  */
 
 // Main Components
 // Component exports removed - React components moved to appropriate frontend packages

@@ -1,11 +1,11 @@
-/**/**
+/**
  * Environment Configuration
  * 
  * Environment variables and configuration settings for the analytics module.
  * 
  * @author Gil Klainert
  * @version 1.0.0
- */
+  */
 
 export interface EnvironmentConfig {
   isDevelopment: boolean;

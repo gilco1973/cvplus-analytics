@@ -1,6 +1,6 @@
 /**
  * Analytics Constants
- */
+  */
 export const ANALYTICS_EVENTS = {
   USER_REGISTRATION: 'user_registration',
   USER_LOGIN: 'user_login',

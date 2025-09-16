@@ -1,4 +1,4 @@
-/**/**
+/**
  * Portal Analytics and URL Types
  * 
  * Analytics tracking, metrics, and URL configuration types for portal system.
@@ -6,35 +6,35 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
- */
+  */
 
 /**
  * Portal URL configuration
- */
+  */
 export interface PortalUrls {
-  /** Main portal URL */
+  /** Main portal URL  */
   portal: string;
   
-  /** Direct chat URL */
+  /** Direct chat URL  */
   chat: string;
   
-  /** Contact form URL */
+  /** Contact form URL  */
   contact: string;
   
-  /** CV download URL */
+  /** CV download URL  */
   download: string;
   
-  /** Multi-purpose QR menu URL */
+  /** Multi-purpose QR menu URL  */
   qrMenu: string;
   
-  /** API endpoints */
+  /** API endpoints  */
   api: {
     chat: string;
     contact: string;
     analytics: string;
   };
   
-  /** Admin/management URLs */
+  /** Admin/management URLs  */
   admin?: {
     dashboard: string;
     analytics: string;
@@ -44,59 +44,59 @@ export interface PortalUrls {
 
 /**
  * Portal analytics data
- */
+  */
 export interface PortalAnalytics {
-  /** Basic metrics */
+  /** Basic metrics  */
   metrics: PortalMetrics;
   
-  /** Visitor tracking */
+  /** Visitor tracking  */
   visitors: VisitorAnalytics;
   
-  /** Chat interactions */
+  /** Chat interactions  */
   chat: ChatAnalytics;
   
-  /** Feature usage */
+  /** Feature usage  */
   features: FeatureUsageAnalytics;
   
-  /** Performance metrics */
+  /** Performance metrics  */
   performance: PerformanceMetrics;
   
-  /** QR code specific analytics */
+  /** QR code specific analytics  */
   qrCodes: QRCodeAnalytics;
 }
 
 /**
  * Basic portal metrics
- */
+  */
 export interface PortalMetrics {
-  /** Total page views */
+  /** Total page views  */
   totalViews: number;
   
-  /** Unique visitors */
+  /** Unique visitors  */
   uniqueVisitors: number;
   
-  /** Average session duration */
+  /** Average session duration  */
   averageSessionDuration: number;
   
-  /** Bounce rate */
+  /** Bounce rate  */
   bounceRate: number;
   
-  /** Total chat sessions */
+  /** Total chat sessions  */
   chatSessions: number;
   
-  /** Contact form submissions */
+  /** Contact form submissions  */
   contactSubmissions: number;
   
-  /** CV downloads */
+  /** CV downloads  */
   cvDownloads: number;
   
-  /** Last updated */
+  /** Last updated  */
   lastUpdated: Date;
 }
 
 /**
  * Visitor analytics
- */
+  */
 export interface VisitorAnalytics {
   total: number;
   unique: number;
@@ -109,7 +109,7 @@ export interface VisitorAnalytics {
 
 /**
  * Chat analytics
- */
+  */
 export interface ChatAnalytics {
   totalSessions: number;
   totalMessages: number;
@@ -121,7 +121,7 @@ export interface ChatAnalytics {
 
 /**
  * Feature usage analytics
- */
+  */
 export interface FeatureUsageAnalytics {
   contactForm: { views: number; submissions: number; conversionRate: number; };
   cvDownloads: { total: number; unique: number; formats: Record<string, number>; };
@@ -131,7 +131,7 @@ export interface FeatureUsageAnalytics {
 
 /**
  * Performance metrics
- */
+  */
 export interface PerformanceMetrics {
   pageLoadTime: number;
   chatResponseTime: number;
@@ -142,15 +142,15 @@ export interface PerformanceMetrics {
 
 /**
  * QR code analytics
- */
+  */
 export interface QRCodeAnalytics {
-  /** Total QR code scans */
+  /** Total QR code scans  */
   totalScans: number;
   
-  /** Unique scan sessions */
+  /** Unique scan sessions  */
   uniqueScans: number;
   
-  /** Scan source breakdown */
+  /** Scan source breakdown  */
   sources: {
     primary: number;     // Main QR on CV
     chat: number;        // Chat-specific QR
@@ -158,21 +158,21 @@ export interface QRCodeAnalytics {
     menu: number;        // Multi-purpose QR menu
   };
   
-  /** Conversion rates */
+  /** Conversion rates  */
   conversions: {
     scanToView: number;      // % of scans that result in page view
     scanToChat: number;      // % of scans that result in chat
     scanToContact: number;   // % of scans that result in contact
   };
   
-  /** Device breakdown */
+  /** Device breakdown  */
   devices: {
     mobile: number;
     tablet: number;
     desktop: number;
   };
   
-  /** Geographic data */
+  /** Geographic data  */
   locations: Array<{
     country: string;
     city?: string;
@@ -182,7 +182,7 @@ export interface QRCodeAnalytics {
 
 /**
  * URL placement options in CV document
- */
+  */
 export enum URLPlacement {
   HEADER = 'header',
   FOOTER = 'footer',
@@ -193,7 +193,7 @@ export enum URLPlacement {
 
 /**
  * QR code types
- */
+  */
 export enum QRCodeType {
   PRIMARY_PORTAL = 'primary_portal',
   CHAT_DIRECT = 'chat_direct',
@@ -204,26 +204,26 @@ export enum QRCodeType {
 
 /**
  * QR code styling options
- */
+  */
 export interface QRCodeStyling {
-  /** Primary color */
+  /** Primary color  */
   primaryColor: string;
   
-  /** Background color */
+  /** Background color  */
   backgroundColor: string;
   
-  /** Logo/icon to embed */
+  /** Logo/icon to embed  */
   logo?: string;
   
-  /** Error correction level */
+  /** Error correction level  */
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
   
-  /** QR code size in pixels */
+  /** QR code size in pixels  */
   size: number;
   
-  /** Border/margin in pixels */
+  /** Border/margin in pixels  */
   margin: number;
   
-  /** Border width in pixels */
+  /** Border width in pixels  */
   borderWidth?: number;
 }

@@ -5,7 +5,7 @@
  * 
  * Extracts market intelligence features including industry trends,
  * location competitiveness, salary benchmarks, and economic indicators.
- */
+  */
 
 import { FeatureVector } from '../../../types/phase2-models';
 
@@ -15,7 +15,7 @@ export class MarketFeatureService {
 
   /**
    * Extract market intelligence features
-   */
+    */
   async extractFeatures(industry?: string, location?: string): Promise<FeatureVector['marketFeatures']> {
     
     const features = {
@@ -33,7 +33,7 @@ export class MarketFeatureService {
 
   /**
    * Health check for market feature service
-   */
+    */
   async healthCheck(): Promise<boolean> {
     try {
       const testFeatures = await this.extractFeatures('technology', 'San Francisco');

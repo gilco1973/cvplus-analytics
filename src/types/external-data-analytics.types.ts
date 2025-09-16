@@ -1,6 +1,6 @@
 /**
  * External Data Analytics Types for CV Processing
- */
+  */
 
 export interface ExternalDataSource {
   id: string;

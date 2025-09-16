@@ -1,11 +1,11 @@
-/**/**
+/**
  * Service Logger
  * 
  * Provides structured logging for service modules with context and metadata.
  * 
  * @author Gil Klainert
  * @version 1.0.0
- */
+  */
 
 export enum LogLevel {
   DEBUG = 0,

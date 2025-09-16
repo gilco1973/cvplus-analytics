@@ -1,4 +1,4 @@
-/**/**
+/**
  * Churn Prediction Service
  * 
  * ML-powered churn prediction and automated retention system.
@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @since Phase 3 - Analytics & Revenue Intelligence
- */
+  */
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
@@ -103,7 +103,7 @@ export class ChurnPredictionService {
 
   /**
    * Predict churn risk for a specific user
-   */
+    */
   async predictChurn(userId: string): Promise<ChurnPrediction> {
     logger.info('Predicting churn for user', { userId });
 
@@ -146,7 +146,7 @@ export class ChurnPredictionService {
 
   /**
    * Identify all at-risk users and prioritize interventions
-   */
+    */
   async identifyAtRiskUsers(threshold: number = 0.5): Promise<AtRiskUser[]> {
     logger.info('Identifying at-risk users', { threshold });
 
@@ -201,7 +201,7 @@ export class ChurnPredictionService {
 
   /**
    * Extract comprehensive user features for ML model
-   */
+    */
   private async extractUserFeatures(userId: string): Promise<UserFeatures> {
     const [subscription, payments, usage, engagement] = await Promise.all([
       this.getSubscriptionHistory(userId),
@@ -240,7 +240,7 @@ export class ChurnPredictionService {
 
   /**
    * Calculate risk level from numeric score
-   */
+    */
   private calculateRiskLevel(riskScore: number): 'low' | 'medium' | 'high' | 'critical' {
     if (riskScore >= 0.8) return 'critical';
     if (riskScore >= 0.6) return 'high';
@@ -250,7 +250,7 @@ export class ChurnPredictionService {
 
   /**
    * Identify key risk factors contributing to churn prediction
-   */
+    */
   private identifyRiskFactors(
     features: UserFeatures, 
     importance: Record<string, number>
@@ -317,7 +317,7 @@ export class ChurnPredictionService {
 
   /**
    * Generate personalized retention recommendations
-   */
+    */
   private async generateRecommendations(
     userId: string, 
     riskFactors: ChurnRiskFactor[]
@@ -376,7 +376,7 @@ export class ChurnPredictionService {
 
   /**
    * Generate specific retention actions
-   */
+    */
   private generateRetentionActions(prediction: ChurnPrediction): RetentionAction[] {
     const actions: RetentionAction[] = [];
     
@@ -438,7 +438,7 @@ export class ChurnPredictionService {
 
   /**
    * Helper methods for data retrieval
-   */
+    */
   private async getActiveSubscriptions(): Promise<any[]> {
     const snapshot = await this.db.collection('subscriptions')
       .where('status', '==', 'active')
@@ -552,7 +552,7 @@ export class ChurnPredictionService {
 /**
  * Simple ML Model for Churn Prediction
  * In production, this would integrate with TensorFlow.js or external ML APIs
- */
+  */
 class ChurnPredictionModel {
   async predict(features: UserFeatures): Promise<ModelPrediction> {
     // Simplified rule-based model for demonstration

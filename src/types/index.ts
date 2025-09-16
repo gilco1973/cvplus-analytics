@@ -1,7 +1,7 @@
 /**
  * CVPlus Analytics - Comprehensive Type Definitions
  * Main export file for all analytics types - Legacy and Modern
- */
+  */
 
 // =============================================================================
 // LEGACY INTERFACES (for backwards compatibility)

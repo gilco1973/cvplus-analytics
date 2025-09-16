@@ -1,9 +1,9 @@
-/**/**
+/**
  * Outcome Tracker Service (Stub Implementation)
  * 
  * This is a stub implementation that will be fully developed in a future iteration.
  * Currently provides basic outcome tracking functionality.
- */
+  */
 
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';

@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @since Phase 3 - Analytics & Revenue Intelligence
- */
+  */
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
@@ -91,7 +91,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Get comprehensive revenue metrics for specified date range
-   */
+    */
   async getRevenueMetrics(dateRange: DateRange): Promise<RevenueMetrics> {
     const cacheKey = `revenue_metrics_${dateRange.start.getTime()}_${dateRange.end.getTime()}`;
     
@@ -148,7 +148,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate Monthly Recurring Revenue (MRR)
-   */
+    */
   private calculateMRR(subscriptions: SubscriptionData[]): number {
     const activeSubscriptions = subscriptions.filter(sub => 
       sub.status === 'active' || sub.status === 'grace_period'
@@ -161,7 +161,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate Annual Recurring Revenue (ARR)
-   */
+    */
   private calculateARR(subscriptions: SubscriptionData[]): number {
     const mrr = this.calculateMRR(subscriptions);
     return mrr * 12;
@@ -169,7 +169,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate Average Revenue Per User (ARPU)
-   */
+    */
   private calculateARPU(subscriptions: SubscriptionData[], payments: PaymentData[]): number {
     const activeUsers = subscriptions.filter(sub => sub.status === 'active').length;
     if (activeUsers === 0) return 0;
@@ -183,7 +183,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate customer lifetime value
-   */
+    */
   private calculateLifetimeValue(
     subscriptions: SubscriptionData[], 
     payments: PaymentData[]
@@ -199,7 +199,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate churn rate for the period
-   */
+    */
   private calculateChurnRate(
     cancellations: SubscriptionData[], 
     totalSubscriptions: SubscriptionData[]
@@ -220,7 +220,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate conversion rate from free to paid
-   */
+    */
   private async calculateConversionRate(dateRange: DateRange): Promise<number> {
     try {
       // Get all users who signed up in the period
@@ -251,7 +251,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Generate cohort analysis data
-   */
+    */
   async generateCohortAnalysis(dateRange: DateRange): Promise<CohortData[]> {
     try {
       const cohorts: CohortData[] = [];
@@ -312,7 +312,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate revenue growth over time
-   */
+    */
   private async calculateRevenueGrowth(dateRange: DateRange): Promise<GrowthData[]> {
     try {
       const growthData: GrowthData[] = [];
@@ -358,7 +358,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Calculate Net Revenue Retention (NRR)
-   */
+    */
   private async calculateNetRevenueRetention(dateRange: DateRange): Promise<number> {
     try {
       const startDate = new Date(dateRange.start);
@@ -379,7 +379,7 @@ export class RevenueAnalyticsService {
 
   /**
    * Helper methods
-   */
+    */
   private async getActiveSubscriptions(dateRange: DateRange): Promise<SubscriptionData[]> {
     const snapshot = await this.db.collection('subscriptions')
       .where('status', 'in', ['active', 'grace_period'])

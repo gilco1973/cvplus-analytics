@@ -24,7 +24,7 @@ import { ConsentCategory } from '../types/tracking.types';
 /**
  * Privacy Compliance Service
  * Handles all GDPR/CCPA compliance requirements
- */
+  */
 export class PrivacyComplianceService {
   private consentManager: ConsentManager;
   private dataSubjectRightsManager: DataSubjectRightsManager;
@@ -40,7 +40,7 @@ export class PrivacyComplianceService {
 
   /**
    * Initialize privacy compliance system
-   */
+    */
   async initialize(): Promise<void> {
     await this.consentManager.initialize();
     await this.auditManager.initialize();
@@ -49,7 +49,7 @@ export class PrivacyComplianceService {
 
   /**
    * Consent Management
-   */
+    */
 
   async recordConsent(
     userId: string,
@@ -103,7 +103,7 @@ export class PrivacyComplianceService {
 
   /**
    * Data Subject Rights (GDPR Articles 15-22)
-   */
+    */
 
   async handleDataAccessRequest(request: {
     userId: string;
@@ -218,7 +218,7 @@ export class PrivacyComplianceService {
 
   /**
    * Privacy Compliance Monitoring
-   */
+    */
 
   async performComplianceAudit(): Promise<PrivacyComplianceStatus> {
     return await this.complianceMonitor.performFullAudit();
@@ -242,7 +242,7 @@ export class PrivacyComplianceService {
 
   /**
    * Data Breach Management
-   */
+    */
 
   async reportDataBreach(breach: {
     breachType: 'unauthorized_access' | 'data_loss' | 'system_compromise' | 'human_error';
@@ -281,7 +281,7 @@ export class PrivacyComplianceService {
 
   /**
    * Privacy Settings Management
-   */
+    */
 
   async getPrivacySettings(userId: string): Promise<PrivacySettings> {
     const consentRecord = await this.consentManager.getConsentStatus(userId);
@@ -326,7 +326,7 @@ export class PrivacyComplianceService {
 
   /**
    * Cookie Compliance
-   */
+    */
 
   async getCookieConsent(userId: string): Promise<Record<string, boolean>> {
     const consentRecord = await this.consentManager.getConsentStatus(userId);
@@ -368,7 +368,7 @@ export class PrivacyComplianceService {
 
   /**
    * Private helper methods
-   */
+    */
 
   private async processConsentWithdrawal(
     userId: string,
@@ -626,7 +626,7 @@ export class PrivacyComplianceService {
 
 /**
  * Consent Manager - Handles consent collection and management
- */
+  */
 class ConsentManager {
   private config: ConsentConfiguration;
 
@@ -705,7 +705,7 @@ class ConsentManager {
 
 /**
  * Data Subject Rights Manager - Handles GDPR data subject requests
- */
+  */
 class DataSubjectRightsManager {
   async storeAccessRequest(request: DataAccessRequest): Promise<void> {
     // Implementation would store access request
@@ -726,7 +726,7 @@ class DataSubjectRightsManager {
 
 /**
  * Privacy Audit Manager - Handles privacy audit trail
- */
+  */
 class PrivacyAuditManager {
   async initialize(): Promise<void> {
     // Initialize audit system
@@ -808,7 +808,7 @@ class PrivacyAuditManager {
 
 /**
  * Compliance Monitor - Monitors ongoing compliance
- */
+  */
 class ComplianceMonitor {
   async initialize(): Promise<void> {
     // Initialize compliance monitoring

@@ -1,6 +1,6 @@
-/**/**
+/**
  * Calculate percentage change between two values
- */
+  */
 export function calculatePercentageChange(current: number, previous: number): number {
   if (previous === 0) return current > 0 ? 100 : 0;
   return ((current - previous) / previous) * 100;
@@ -8,7 +8,7 @@ export function calculatePercentageChange(current: number, previous: number): nu
 
 /**
  * Format currency values
- */
+  */
 export function formatCurrency(amount: number, currency: string = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -20,14 +20,14 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
 
 /**
  * Format percentage values
- */
+  */
 export function formatPercentage(value: number, decimals: number = 1): string {
   return `${value.toFixed(decimals)}%`;
 }
 
 /**
  * Format large numbers with abbreviations (K, M, B)
- */
+  */
 export function formatLargeNumber(num: number): string {
   const absNum = Math.abs(num);
   
@@ -44,7 +44,7 @@ export function formatLargeNumber(num: number): string {
 
 /**
  * Generate date ranges for analytics queries
- */
+  */
 export function generateDateRange(
   start: Date, 
   end: Date, 
@@ -74,7 +74,7 @@ export function generateDateRange(
 
 /**
  * Calculate retention rate
- */
+  */
 export function calculateRetentionRate(retained: number, total: number): number {
   if (total === 0) return 0;
   return (retained / total) * 100;
@@ -82,7 +82,7 @@ export function calculateRetentionRate(retained: number, total: number): number 
 
 /**
  * Calculate churn rate
- */
+  */
 export function calculateChurnRate(churned: number, total: number): number {
   if (total === 0) return 0;
   return (churned / total) * 100;
@@ -90,7 +90,7 @@ export function calculateChurnRate(churned: number, total: number): number {
 
 /**
  * Calculate customer lifetime value
- */
+  */
 export function calculateCustomerLifetimeValue(
   averageRevenue: number,
   averageLifespan: number,
@@ -102,7 +102,7 @@ export function calculateCustomerLifetimeValue(
 
 /**
  * Validate analytics event data
- */
+  */
 export function validateAnalyticsEvent(event: any): boolean {
   return !!(
     event &&
@@ -114,7 +114,7 @@ export function validateAnalyticsEvent(event: any): boolean {
 
 /**
  * Generate cohort identifier from date
- */
+  */
 export function generateCohortId(date: Date, period: 'week' | 'month' | 'quarter'): string {
   const year = date.getFullYear();
   
@@ -135,7 +135,7 @@ export function generateCohortId(date: Date, period: 'week' | 'month' | 'quarter
 
 /**
  * Safe division to avoid divide by zero
- */
+  */
 export function safeDivide(numerator: number, denominator: number, defaultValue: number = 0): number {
   return denominator === 0 ? defaultValue : numerator / denominator;
 }

@@ -1,9 +1,9 @@
-/**/**
+/**
  * Prediction Cache Service
  * 
  * Manages caching of ML predictions and features to improve performance
  * and reduce redundant computations.
- */
+  */
 
 import { SuccessPrediction, FeatureVector } from '../../../types/phase2-models';
 import { PredictionRequest } from './MLPipelineOrchestrator';
@@ -29,7 +29,7 @@ export class PredictionCache {
 
   /**
    * Get cached prediction if available and not expired
-   */
+    */
   async get(request: PredictionRequest): Promise<SuccessPrediction | null> {
     const cacheKey = this.generatePredictionCacheKey(request);
     const entry = this.predictionCache.get(cacheKey);
@@ -48,7 +48,7 @@ export class PredictionCache {
 
   /**
    * Cache a prediction
-   */
+    */
   async set(request: PredictionRequest, prediction: SuccessPrediction): Promise<void> {
     const cacheKey = this.generatePredictionCacheKey(request);
     const expiresAt = new Date(Date.now() + this.PREDICTION_TTL);
@@ -69,7 +69,7 @@ export class PredictionCache {
 
   /**
    * Get cached features if available and not expired
-   */
+    */
   async getFeatures(request: PredictionRequest): Promise<FeatureVector | null> {
     const cacheKey = this.generateFeatureCacheKey(request);
     const entry = this.featureCache.get(cacheKey);
@@ -88,7 +88,7 @@ export class PredictionCache {
 
   /**
    * Cache extracted features
-   */
+    */
   async setFeatures(request: PredictionRequest, features: FeatureVector): Promise<void> {
     const cacheKey = this.generateFeatureCacheKey(request);
     const expiresAt = new Date(Date.now() + this.FEATURE_TTL);
@@ -109,7 +109,7 @@ export class PredictionCache {
 
   /**
    * Invalidate cache entries for a specific user
-   */
+    */
   async invalidateUser(userId: string): Promise<void> {
     let removedCount = 0;
     
@@ -133,7 +133,7 @@ export class PredictionCache {
 
   /**
    * Clear all cache entries
-   */
+    */
   async clear(): Promise<void> {
     const totalEntries = this.predictionCache.size + this.featureCache.size;
     
@@ -144,7 +144,7 @@ export class PredictionCache {
 
   /**
    * Get cache statistics
-   */
+    */
   async getStats(): Promise<{
     predictions: { size: number; hitRate?: number };
     features: { size: number; hitRate?: number };
@@ -163,7 +163,7 @@ export class PredictionCache {
 
   /**
    * Health check for cache service
-   */
+    */
   async healthCheck(): Promise<boolean> {
     try {
       // Test basic cache operations

@@ -12,11 +12,12 @@ export default defineConfig({
       exclude: [
         'node_modules/**',
         'dist/**',
-        '**/*.d.ts',
+        '**/* .d.ts',
+  */
         '**/*.config.*',
         'tests/**',
-        'src/**/*.test.*',
-        'src/**/*.spec.*'
+        'src*/*.test.*',
+        'src*/*.spec.*'
       ],
       thresholds: {
         global: {

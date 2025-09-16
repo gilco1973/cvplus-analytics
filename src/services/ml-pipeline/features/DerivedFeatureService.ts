@@ -1,9 +1,9 @@
-/**/**
+/**
  * Derived Feature Service
  * 
  * Calculates advanced features derived from CV content, job matching,
  * and other feature combinations for enhanced ML prediction accuracy.
- */
+  */
 
 import { ParsedCV } from '../../../types/job';
 import { FeatureVector } from '../../../types/phase2-models';
@@ -12,7 +12,7 @@ export class DerivedFeatureService {
   
   /**
    * Extract derived features based on CV, job description, and other features
-   */
+    */
   async extractFeatures(
     cv: ParsedCV, 
     jobDescription: string,
@@ -40,7 +40,7 @@ export class DerivedFeatureService {
 
   /**
    * Health check for derived feature service
-   */
+    */
   async healthCheck(): Promise<boolean> {
     try {
       const testCV: ParsedCV = {

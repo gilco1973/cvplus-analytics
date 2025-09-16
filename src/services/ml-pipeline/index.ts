@@ -1,9 +1,9 @@
-/**/**
+/**
  * ML Pipeline Service - Refactored Entry Point
  * 
  * Maintains backward compatibility with the original MLPipelineService
  * while delegating to the new modular architecture.
- */
+  */
 
 import { MLPipelineOrchestrator, PredictionRequest } from './core/MLPipelineOrchestrator';
 import { 
@@ -19,7 +19,7 @@ import { ParsedCV } from '../../types/job';
  * 
  * This class maintains the same API as the original MLPipelineService
  * but delegates all operations to the new modular architecture.
- */
+  */
 export class MLPipelineService {
   private orchestrator: MLPipelineOrchestrator;
 
@@ -30,7 +30,7 @@ export class MLPipelineService {
   /**
    * Generate comprehensive success prediction for a job application
    * @deprecated Use orchestrator.predictSuccess() directly for better performance
-   */
+    */
   async predictSuccess(request: PredictionRequest): Promise<SuccessPrediction> {
     return this.orchestrator.predictSuccess(request);
   }
@@ -38,7 +38,7 @@ export class MLPipelineService {
   /**
    * Extract comprehensive features from CV and job context
    * @deprecated Access through orchestrator.featureExtractor for more control
-   */
+    */
   async extractFeatures(request: PredictionRequest) {
     // This method is now handled internally by the orchestrator
     
@@ -50,7 +50,7 @@ export class MLPipelineService {
   /**
    * Train or retrain ML models with new data
    * @deprecated Model training will be handled by dedicated training service
-   */
+    */
   async trainModel(config: MLTrainingConfig): Promise<{ success: boolean; modelId: string; metrics: any }> {
     
     return {
@@ -62,21 +62,21 @@ export class MLPipelineService {
 
   /**
    * Record user outcome for model improvement
-   */
+    */
   async recordOutcome(outcome: UserOutcome): Promise<void> {
     return this.orchestrator.recordOutcome(outcome);
   }
 
   /**
    * Get service health status
-   */
+    */
   async getHealthStatus() {
     return this.orchestrator.getHealthStatus();
   }
 
   /**
    * Get orchestrator instance for advanced usage
-   */
+    */
   getOrchestrator(): MLPipelineOrchestrator {
     return this.orchestrator;
   }
@@ -84,17 +84,17 @@ export class MLPipelineService {
 
 /**
  * Export singleton instance for backward compatibility
- */
+  */
 export const mlPipelineService = new MLPipelineService();
 
 /**
  * Export the orchestrator for direct access to new architecture
- */
+  */
 export { MLPipelineOrchestrator, PredictionRequest };
 
 /**
  * Export individual services for fine-grained control
- */
+  */
 export { FeatureExtractor } from './features/FeatureExtractor';
 export { CVFeatureService } from './features/CVFeatureService';
 export { MatchingFeatureService } from './features/MatchingFeatureService';
@@ -107,5 +107,5 @@ export { InterviewPredictor } from './predictions/InterviewPredictor';
 
 /**
  * Export types for external usage
- */
+  */
 export type { FeatureVector, SuccessPrediction, UserOutcome, MLTrainingConfig } from '../../types/phase2-models';

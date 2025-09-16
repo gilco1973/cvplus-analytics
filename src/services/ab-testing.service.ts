@@ -24,7 +24,7 @@ import {
 /**
  * A/B Testing Service
  * Complete experimentation platform with statistical analysis
- */
+  */
 export class ABTestingService {
   private experimentManager: ExperimentManager;
   private variantAssignmentManager: VariantAssignmentManager;
@@ -42,7 +42,7 @@ export class ABTestingService {
 
   /**
    * Initialize A/B testing service
-   */
+    */
   async initialize(): Promise<void> {
     await this.experimentManager.initialize();
     await this.featureFlagManager.initialize();
@@ -51,7 +51,7 @@ export class ABTestingService {
 
   /**
    * Experiment Management
-   */
+    */
 
   async createExperiment(config: {
     name: string;
@@ -192,7 +192,7 @@ export class ABTestingService {
 
   /**
    * Variant Assignment
-   */
+    */
 
   async getVariantAssignment(
     experimentId: string,
@@ -269,7 +269,7 @@ export class ABTestingService {
 
   /**
    * Event Tracking
-   */
+    */
 
   async trackExposure(
     experimentId: string,
@@ -331,7 +331,7 @@ export class ABTestingService {
 
   /**
    * Results Analysis
-   */
+    */
 
   async getExperimentResults(experimentId: string): Promise<ExperimentResults | null> {
     const experiment = await this.experimentManager.getExperiment(experimentId);
@@ -391,7 +391,7 @@ export class ABTestingService {
 
   /**
    * Feature Flags
-   */
+    */
 
   async createFeatureFlag(config: {
     name: string;
@@ -443,7 +443,7 @@ export class ABTestingService {
 
   /**
    * Private helper methods
-   */
+    */
 
   private async validateExperimentConfig(config: any): Promise<void> {
     const errors: string[] = [];
@@ -698,7 +698,7 @@ export class ABTestingService {
 
 /**
  * Supporting classes for A/B testing functionality
- */
+  */
 
 class ExperimentManager {
   async initialize(): Promise<void> {}
