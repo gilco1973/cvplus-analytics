@@ -1,4 +1,5 @@
-// CVPlus Analytics - Business Intelligence & Dashboard Types
+/**
+ * CVPlus Analytics - Business Intelligence & Dashboard Types
 // Advanced BI, reporting, and predictive analytics types
 
 /**

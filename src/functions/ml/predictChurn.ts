@@ -1,4 +1,4 @@
-/**
+/**/**
  * Predict Churn Cloud Function
  * 
  * ML-powered churn prediction and automated retention system.
@@ -11,7 +11,7 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, isAdmin } from '../../middleware/authGuard';
+import { requireAuth, isAdmin } from '@cvplus/auth/middleware/authGuard';
 import { churnPredictionService } from '../../services/churn-prediction.service';
 import { retentionAutomationService } from '../../services/retention-automation.service';
 

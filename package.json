@@ -25,7 +25,8 @@
     "test:watch": "vitest --watch",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "validate-dependencies": "./scripts/validate-dependencies.sh"
+    "validate-dependencies": "./scripts/validate-dependencies.sh",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@cvplus/auth": "file:../auth",

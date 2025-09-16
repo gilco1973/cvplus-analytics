@@ -1,4 +1,4 @@
-/**
+/**/**
  * Service Logger
  * 
  * Provides structured logging for service modules with context and metadata.

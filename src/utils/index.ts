@@ -1,4 +1,4 @@
-/**
+/**/**
  * Calculate percentage change between two values
  */
 export function calculatePercentageChange(current: number, previous: number): number {

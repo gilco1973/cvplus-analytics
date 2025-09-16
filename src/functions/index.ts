@@ -1,4 +1,5 @@
-// CVPlus Analytics Functions
+/**
+ * CVPlus Analytics Functions
 // Firebase Functions exports for analytics, revenue tracking, and business intelligence
 
 // =============================================================================
@@ -7,9 +8,10 @@
 export { getRevenueMetrics } from './getRevenueMetrics';
 
 // =============================================================================
-// DASHBOARD FUNCTIONS
+// DASHBOARD FUNCTIONS - MIGRATED TO @cvplus/admin
 // =============================================================================
-export { videoAnalyticsDashboard } from './dashboard/video-analytics-dashboard';
+// MOVED: Dashboard functions migrated to @cvplus/admin/backend/functions/dashboards
+// Import from @cvplus/admin for dashboard functionality
 
 // =============================================================================
 // EXTERNAL DATA ANALYTICS FUNCTIONS
@@ -35,19 +37,10 @@ export {
 } from './conversion/getConversionMetrics';
 
 // =============================================================================
-// PREMIUM ANALYTICS FUNCTIONS
+// PREMIUM ANALYTICS FUNCTIONS - MIGRATED TO @cvplus/premium
 // =============================================================================
-export { batchTrackingEvents } from './premium/batchTrackingEvents';
-export { getRealtimeUsageStats } from './premium/getRealtimeUsageStats';
-export { 
-  createCustomReport,
-  generateWhiteLabelReport,
-  exportReport,
-  getDataSources,
-  getReportTemplates,
-  validateReportConfig,
-  analyticsHealthCheck
-} from './premium/advancedAnalytics';
+// MOVED: Premium analytics functions migrated to @cvplus/premium/backend/functions
+// Import from @cvplus/premium for premium analytics functionality
 
 // =============================================================================
 // ML ANALYTICS FUNCTIONS

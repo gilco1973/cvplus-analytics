@@ -1,4 +1,5 @@
-// CVPlus Privacy Compliance Service - Test Suite
+/**
+ * CVPlus Privacy Compliance Service - Test Suite
 // Comprehensive tests for GDPR/CCPA compliance, consent management, and data subject rights
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';

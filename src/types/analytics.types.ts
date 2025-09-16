@@ -1,5 +1,7 @@
-// CVPlus Analytics Types
-// Comprehensive analytics type definitions
+/**
+ * CVPlus Analytics Types
+ * Comprehensive analytics type definitions
+ */
 
 // Re-export all analytics types for backwards compatibility
 export type {
@@ -29,6 +31,10 @@ export type {
   QRCodeAnalytics
 } from './portal-analytics';
 
+
+// Define essential analytics types
+export type EntityType = 'user_profile' | 'processed_cv' | 'generated_content' | 'public_profile';
+export type AggregationPeriod = 'hour' | 'day' | 'week' | 'month' | 'year';
 
 // Import types first to avoid circular dependencies
 import type { AnalyticsEvent as CoreAnalyticsEvent, AnalyticsMetrics } from './analytics-core.types';

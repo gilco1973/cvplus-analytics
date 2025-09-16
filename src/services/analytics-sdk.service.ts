@@ -1,4 +1,5 @@
-// CVPlus Analytics SDK - Main Service Class
+/**
+ * CVPlus Analytics SDK - Main Service Class
 // Comprehensive analytics collection and privacy management
 
 import { 

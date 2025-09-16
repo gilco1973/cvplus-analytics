@@ -1,4 +1,5 @@
-// CVPlus Analytics - Privacy Compliance Service
+/**
+ * CVPlus Analytics - Privacy Compliance Service
 // Comprehensive GDPR/CCPA compliance management
 
 import {

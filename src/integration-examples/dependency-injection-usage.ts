@@ -1,4 +1,4 @@
-/**
+/**/**
  * Dependency Injection Usage Examples
  * Shows how to properly use the enhanced premium guard with dependency injection
  * Author: Gil Klainert

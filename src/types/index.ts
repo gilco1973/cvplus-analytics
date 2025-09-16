@@ -1,5 +1,7 @@
-// CVPlus Analytics - Comprehensive Type Definitions
-// Main export file for all analytics types - Legacy and Modern
+/**
+ * CVPlus Analytics - Comprehensive Type Definitions
+ * Main export file for all analytics types - Legacy and Modern
+ */
 
 // =============================================================================
 // LEGACY INTERFACES (for backwards compatibility)
@@ -123,12 +125,12 @@ export type {
 
 // Enhanced Analytics Types
 export type {
-  FeatureUsage,
+  // FeatureUsage,
   FeatureInteraction,
-  FeatureConfig,
-  UserExperience,
-  UserPersonality,
-  FeaturePersonalityAnalysis
+  // FeatureConfig,
+  // UserExperience,
+  // UserPersonality,
+  // FeaturePersonalityAnalysis
 } from './enhanced-analytics';
 
 // Portal Analytics Types  
@@ -158,13 +160,13 @@ export type {
   RevenueComparison
 } from './revenue.types';
 
-// Dashboard Types
-export type {
-  DashboardMetric,
-  DashboardConfig as ModernDashboardConfig,
-  DashboardWidget as ModernDashboardWidget,
-  DashboardLayout
-} from './dashboard.types';
+// Dashboard Types - TODO: Create dashboard.types.ts when needed
+// export type {
+//   DashboardMetric,
+//   DashboardConfig as ModernDashboardConfig,
+//   DashboardWidget as ModernDashboardWidget,
+//   DashboardLayout
+// } from './dashboard.types';
 
 // Comprehensive Types (conditional exports removed - use explicit imports)
 // export * from './tracking.types';
@@ -178,14 +180,26 @@ export type {
 export * from './analytics.types';
 export * from './revenue.types';
 export * from './cohort.types';
-export * from './dashboard.types';
+// export * from './dashboard.types'; // TODO: Create dashboard.types.ts when needed
 export * from './user-outcomes';
 
 // Migrated from Core Module
 export * from './analytics';
 export * from './enhanced-analytics';
 
+// Core Analytics Types (migrated from cv-processing)
+export * from './core-analytics';
+
 // =============================================================================
 // VERSION
 // =============================================================================
 export const ANALYTICS_TYPES_VERSION = '1.0.0';
+
+// Migrated analytics types from core module
+export * from './user-outcomes';
+export * from './ml-pipeline';
+export * from './success-prediction';
+
+// export * from './api'; // TODO: Create api.ts when needed
+// export * from './booking.types'; // TODO: Create booking.types.ts when needed
+// export * from './payment.types'; // TODO: Create payment.types.ts when needed

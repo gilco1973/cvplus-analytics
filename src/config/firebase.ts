@@ -1,4 +1,5 @@
-// Firebase Configuration for CVPlus Analytics
+/**
+ * Firebase Configuration for CVPlus Analytics
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 

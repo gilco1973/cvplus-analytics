@@ -1,4 +1,5 @@
-// CVPlus Analytics - Privacy & Consent Management Types
+/**
+ * CVPlus Analytics - Privacy & Consent Management Types
 // GDPR/CCPA compliant privacy management system
 
 import { ConsentCategory } from './tracking.types';

@@ -1,4 +1,5 @@
-// Redis Client Service for CVPlus Analytics
+/**
+ * Redis Client Service for CVPlus Analytics
 import { Redis } from 'ioredis';
 
 class RedisClientService {

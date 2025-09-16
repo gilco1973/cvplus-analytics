@@ -1,4 +1,4 @@
-/**
+/**/**
  * Service Registry
  * 
  * Centralized registry for managing service instances and dependencies.

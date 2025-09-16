@@ -1,4 +1,5 @@
-// CVPlus A/B Testing Service - Test Suite
+/**
+ * CVPlus A/B Testing Service - Test Suite
 // Comprehensive tests for experimentation, statistical analysis, and feature flags
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';

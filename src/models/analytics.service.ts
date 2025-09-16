@@ -1,4 +1,4 @@
-/**
+/**/**
  * Analytics Firestore Service
  *
  * Firebase model service for managing AnalyticsEvent and AnalyticsAggregate entities
@@ -29,26 +29,28 @@ import {
 } from 'firebase-admin/firestore';
 import {
   AnalyticsEvent,
-  AnalyticsAggregate,
-  RealTimeAnalytics,
-  validateAnalyticsEvent,
-  isAnalyticsEvent,
   EventType,
+  // AnalyticsAggregate,
+  // RealTimeAnalytics,
+  // validateAnalyticsEvent,
+  // isAnalyticsEvent,
+  // GenerationStatus,
+  // ReferrerCategory,
+  // AnomalyType,
+  // generateAggregateId,
+  // calculateBounceRate,
+  // calculateConversionRate,
+  // anonymizeIpAddress,
+  // isBotTraffic,
+  // getPeriodBoundaries,
+  // calculateGeographicDiversity,
+  // formatAnalyticsNumber,
+  // calculateGrowthRate
+} from '../types/analytics-core.types';
+import {
   EntityType,
-  AggregationPeriod,
-  GenerationStatus,
-  ReferrerCategory,
-  AnomalyType,
-  generateAggregateId,
-  calculateBounceRate,
-  calculateConversionRate,
-  anonymizeIpAddress,
-  isBotTraffic,
-  getPeriodBoundaries,
-  calculateGeographicDiversity,
-  formatAnalyticsNumber,
-  calculateGrowthRate
-} from '../../../shared/types/analytics';
+  AggregationPeriod
+} from '../types/analytics.types';
 import { logger } from 'firebase-functions/v2';
 
 // ============================================================================

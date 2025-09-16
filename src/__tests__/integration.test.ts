@@ -1,4 +1,5 @@
-// CVPlus Analytics - Integration Test
+/**
+ * CVPlus Analytics - Integration Test
 // Basic integration test to verify all services work together
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';

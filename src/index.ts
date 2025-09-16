@@ -1,5 +1,7 @@
-// CVPlus Analytics Module - Comprehensive Analytics Platform
-// Advanced analytics, privacy compliance, A/B testing, and business intelligence
+/**
+ * CVPlus Analytics Module - Comprehensive Analytics Platform
+ * Advanced analytics, privacy compliance, A/B testing, and business intelligence
+ */
 
 // =============================================================================
 // CORE SERVICES
@@ -211,6 +213,34 @@ export const analyticsHealthCheck = onCall(async (data) => {
 // TYPE EXPORTS
 // =============================================================================
 export * from './types';
+
+// Explicit exports for types previously imported by core module
+export type {
+  UserOutcome,
+  OutcomeEvent
+} from './types/user-outcomes';
+
+export type {
+  MLPipeline,
+  MLModel,
+  MLModelMetadata,
+  FeatureVector,
+  Phase2APIResponse,
+  PredictionResponse,
+  AnalyticsResponse,
+  IndustryOptimizationResponse,
+  RegionalOptimizationResponse,
+  MLTrainingConfig
+} from './types/ml-pipeline';
+
+export type {
+  SuccessPrediction,
+  PredictionResult,
+  SalaryPrediction,
+  TimeToHirePrediction,
+  PredictiveRecommendation,
+  PredictionTypes
+} from './types/success-prediction';
 
 // =============================================================================
 // CONSTANTS

@@ -1,4 +1,5 @@
-// CVPlus Analytics - Business Intelligence Service
+/**
+ * CVPlus Analytics - Business Intelligence Service
 // Advanced BI, dashboards, reporting, and predictive analytics
 
 import {

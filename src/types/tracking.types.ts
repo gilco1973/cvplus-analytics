@@ -1,4 +1,5 @@
-// CVPlus Analytics - Event Tracking Types
+/**
+ * CVPlus Analytics - Event Tracking Types
 // Comprehensive type definitions for event tracking and analytics
 
 /**

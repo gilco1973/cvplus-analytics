@@ -1,4 +1,4 @@
-/**
+/**/**
  * Performance Monitor Service
  * 
  * Real-time video generation metrics collection, performance tracking,
@@ -12,11 +12,11 @@
 import * as admin from 'firebase-admin';
 import config from '../config/environment';
 import { AnalyticsEvent, AnalyticsMetrics } from '../types/analytics';
-import { 
-  VideoGenerationResult, 
+import {
+  VideoGenerationResult,
   VideoGenerationOptions,
-  ProviderPerformanceMetrics 
-} from './video-providers/base-provider.interface';
+  ProviderPerformanceMetrics
+} from '@cvplus/multimedia/providers/video-providers/base-provider.interface';
 
 // Performance monitoring interfaces
 export interface VideoGenerationMetrics {

@@ -1,4 +1,4 @@
-/**/**
+/**
  * Analytics Cache Service for CVPlus Performance Optimization
  * 
  * High-performance caching for expensive analytics queries, reducing
@@ -12,7 +12,6 @@
 
 import { logger } from 'firebase-functions';
 import { cacheService } from './cache.service';
-import { db } from '../../config/firebase';
 import * as crypto from 'crypto';
 
 export interface AnalyticsQuery {
@@ -220,6 +219,9 @@ class AnalyticsCacheService {
       for (let i = 0; i < queries.length; i++) {
         const query = queries[i];
         const key = keys[i];
+        
+        if (!query || !key) continue;
+        
         const result = batchResult.results[key];
         const cached = batchResult.cached[key];
         
@@ -234,7 +236,7 @@ class AnalyticsCacheService {
               executionTime: result.executionTime,
               dataFreshness,
               recordCount: result.recordCount,
-              cached,
+              cached: cached ?? false,
               generatedAt: new Date(result.generatedAt),
               expiresAt: new Date(Date.now() + (ttl * 1000))
             }
@@ -479,7 +481,7 @@ class AnalyticsCacheService {
 
   // Analytics data fetchers (simplified implementations)
   
-  private async getDashboardSummaryData(query: AnalyticsQuery): Promise<any> {
+  private async getDashboardSummaryData(_query: AnalyticsQuery): Promise<any> {
     // Simplified dashboard summary
     return {
       totalUsers: 1250,
@@ -492,7 +494,7 @@ class AnalyticsCacheService {
     };
   }
 
-  private async getRevenueMetricsData(query: AnalyticsQuery): Promise<any> {
+  private async getRevenueMetricsData(_query: AnalyticsQuery): Promise<any> {
     // Simplified revenue metrics
     return {
       periods: [
@@ -505,7 +507,7 @@ class AnalyticsCacheService {
     };
   }
 
-  private async getFeatureUsageData(query: AnalyticsQuery): Promise<any> {
+  private async getFeatureUsageData(_query: AnalyticsQuery): Promise<any> {
     // Simplified feature usage
     return {
       features: [
@@ -516,23 +518,23 @@ class AnalyticsCacheService {
     };
   }
 
-  private async getUserCohortsData(query: AnalyticsQuery): Promise<any> {
+  private async getUserCohortsData(_query: AnalyticsQuery): Promise<any> {
     return { cohorts: [] };
   }
 
-  private async getConversionMetricsData(query: AnalyticsQuery): Promise<any> {
+  private async getConversionMetricsData(_query: AnalyticsQuery): Promise<any> {
     return { conversions: [] };
   }
 
-  private async getSubscriptionAnalyticsData(query: AnalyticsQuery): Promise<any> {
+  private async getSubscriptionAnalyticsData(_query: AnalyticsQuery): Promise<any> {
     return { subscriptions: [] };
   }
 
-  private async getUserEngagementData(query: AnalyticsQuery): Promise<any> {
+  private async getUserEngagementData(_query: AnalyticsQuery): Promise<any> {
     return { periods: [] };
   }
 
-  private async getChurnAnalysisData(query: AnalyticsQuery): Promise<any> {
+  private async getChurnAnalysisData(_query: AnalyticsQuery): Promise<any> {
     return { cohorts: [] };
   }
 

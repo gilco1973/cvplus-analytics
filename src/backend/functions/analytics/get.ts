@@ -1,15 +1,16 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { Request, Response } from 'firebase-functions';
 import {
-  getAnalyticsByEntity,
-  getAnalyticsAggregates,
-  getAnalyticsEvents
-} from '../../models/analytics.service';
-import { getUserProfile } from '@cvplus/auth';
-import { getPublicProfile } from '@cvplus/public-profiles';
-import { getCVJob } from '@cvplus/cv-processing';
-import { authenticateUser } from '../../middleware/authGuard';
-import { EntityType, AggregationPeriod } from '../../types/analytics.types';
+  getAnalyticsEvent,
+  queryAnalyticsEvents,
+  trackEvent
+} from '../../../models/analytics.service';
+// Temporarily commented out external package imports to resolve compilation
+// import { getUserProfile } from '@cvplus/auth';
+// import { getPublicProfile } from '@cvplus/public-profiles';
+// import { getCVJob } from '@cvplus/cv-processing';
+import { requireAuth } from '@cvplus/auth/middleware/authGuard';
+import { EntityType, AggregationPeriod } from '../../../types/analytics.types';
 
 interface AnalyticsRequest {
   period?: AggregationPeriod;
@@ -105,7 +106,7 @@ export const getAnalytics = onRequest(
       }
 
       // Authenticate user
-      const authResult = await authenticateUser(req);
+      const authResult = await requireAuth(req);
       if (!authResult.success || !authResult.userId) {
         res.status(401).json({
           success: false,

@@ -1,4 +1,5 @@
-// CVPlus Analytics - A/B Testing Service
+/**
+ * CVPlus Analytics - A/B Testing Service
 // Comprehensive experimentation framework with statistical analysis
 
 import {

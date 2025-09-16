@@ -1,4 +1,5 @@
-// @ts-nocheck
+/**
+ * @ts-nocheck
 /**
  * Feature Extractor - Orchestrates feature extraction from multiple sources
  * 

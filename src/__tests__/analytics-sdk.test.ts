@@ -1,4 +1,5 @@
-// CVPlus Analytics SDK - Test Suite
+/**
+ * CVPlus Analytics SDK - Test Suite
 // Comprehensive tests for event tracking, privacy compliance, and session management
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';

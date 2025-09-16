@@ -1,4 +1,6 @@
-// CORS Configuration for CVPlus Analytics
+/**
+ * CORS Configuration for CVPlus Analytics
+ */
 export const corsOptions = {
   origin: [
     'http://localhost:3000',

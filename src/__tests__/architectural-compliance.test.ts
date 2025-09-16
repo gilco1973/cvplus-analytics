@@ -1,4 +1,4 @@
-/**
+/**/**
  * Architectural Compliance Test
  * Validates that the dependency violation fix works correctly
  * Author: Gil Klainert

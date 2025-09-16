@@ -1,4 +1,5 @@
-// CVPlus Analytics - A/B Testing & Experimentation Types
+/**
+ * CVPlus Analytics - A/B Testing & Experimentation Types
 // Comprehensive A/B testing framework with statistical analysis
 
 /**

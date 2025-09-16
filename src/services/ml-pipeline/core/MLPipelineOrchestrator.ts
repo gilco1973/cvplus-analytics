@@ -1,4 +1,4 @@
-/**
+/**/**
  * ML Pipeline Orchestrator - Core coordination service
  * 
  * Coordinates the entire ML prediction pipeline while delegating specific
@@ -19,7 +19,7 @@ import { OfferPredictor } from '../predictions/OfferPredictor';
 import { SalaryPredictor } from '../predictions/SalaryPredictor';
 import { TimeToHirePredictor } from '../predictions/TimeToHirePredictor';
 import { CompetitivenessAnalyzer } from '../predictions/CompetitivenessAnalyzer';
-import { RecommendationEngine } from '../recommendations/RecommendationEngine';
+import { RecommendationEngine } from '@cvplus/recommendations/engine/RecommendationEngine';
 import { OutcomeTracker } from '../outcomes/OutcomeTracker';
 import { PredictionCache } from './PredictionCache';
 import { FallbackManager } from '../fallbacks/FallbackManager';
