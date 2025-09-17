@@ -9,7 +9,7 @@
  * @since Phase 3 - Analytics & Revenue Intelligence
 */
 
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { AtRiskUser, RetentionAction } from './churn-prediction.service';
 
@@ -554,13 +554,254 @@ export class RetentionAutomationService {
     // In production, these would be loaded from database
   }
 
-  // Placeholder methods for external integrations
-  private async createCRMTask(params: any): Promise<boolean> { return true; }
-  private async sendPersonalizedEmail(params: any): Promise<boolean> { return true; }
-  private async createDiscountOffer(params: any): Promise<boolean> { return true; }
-  private async createPersonalizedTutorial(params: any): Promise<boolean> { return true; }
-  private async createSupportTicket(params: any): Promise<boolean> { return true; }
-  private async createCalendarEvent(params: any): Promise<boolean> { return true; }
+  // Real external integration implementations
+  private async createCRMTask(params: {
+    type: string;
+    userId: string;
+    priority: string;
+    notes: string;
+    dueDate: Date;
+    parameters?: any;
+  }): Promise<boolean> {
+    try {
+      await this.db.collection('crm_tasks').add({
+        type: params.type,
+        userId: params.userId,
+        title: `Retention: ${params.type}`,
+        description: params.notes,
+        priority: params.priority,
+        dueDate: params.dueDate,
+        parameters: params.parameters || {},
+        status: 'pending',
+        createdAt: FieldValue.serverTimestamp(),
+        assignedTo: 'retention_team',
+        source: 'retention_automation'
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to create CRM task:', error);
+      return false;
+    }
+  }
+
+  private async sendPersonalizedEmail(params: {
+    userId: string;
+    template?: string;
+    templateId?: string;
+    subject?: string;
+    personalizedContent?: any;
+    urgency?: string;
+    scheduledFor?: Date;
+  }): Promise<boolean> {
+    try {
+      await this.db.collection('email_queue').add({
+        userId: params.userId,
+        templateId: params.templateId || params.template || 'retention_default',
+        subject: params.subject || 'Important Update From CVPlus',
+        personalizedContent: params.personalizedContent || {},
+        urgency: params.urgency || 'medium',
+        status: 'queued',
+        createdAt: FieldValue.serverTimestamp(),
+        scheduledFor: params.scheduledFor || new Date(),
+        retries: 0,
+        source: 'retention_automation'
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to queue personalized email:', error);
+      return false;
+    }
+  }
+
+  private async createDiscountOffer(params: {
+    userId: string;
+    discountPercent?: number;
+    discountPercentage?: number;
+    validityDays?: number;
+    validUntil?: Date;
+    applicableProducts?: string[];
+    requiresAction?: boolean;
+    reason?: string;
+  }): Promise<boolean> {
+    try {
+      const promoCode = `RETENTION_${Date.now().toString(36).toUpperCase()}`;
+      const discountAmount = params.discountPercent || params.discountPercentage || 15;
+      const validUntil = params.validUntil || new Date(Date.now() + (params.validityDays || 14) * 24 * 60 * 60 * 1000);
+
+      await this.db.collection('discount_offers').add({
+        userId: params.userId,
+        discountPercentage: discountAmount,
+        validUntil,
+        applicableProducts: params.applicableProducts || ['all'],
+        requiresCallToAction: params.requiresAction || false,
+        reason: params.reason || 'retention_campaign',
+        promoCode,
+        status: 'active',
+        usageCount: 0,
+        maxUsage: 1,
+        createdAt: FieldValue.serverTimestamp(),
+        source: 'retention_automation'
+      });
+
+      // Send notification to user about the discount
+      await this.sendPersonalizedEmail({
+        userId: params.userId,
+        templateId: 'discount_offer',
+        subject: `Special ${discountAmount}% Discount Just For You!`,
+        personalizedContent: {
+          discountPercentage: discountAmount,
+          promoCode,
+          validUntil: validUntil.toLocaleDateString()
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to create discount offer:', error);
+      return false;
+    }
+  }
+
+  private async createPersonalizedTutorial(params: {
+    userId: string;
+    interactive?: boolean;
+    personalized?: boolean;
+    withGamification?: boolean;
+    tutorialType?: string;
+    contentItems?: string[];
+    difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  }): Promise<boolean> {
+    try {
+      await this.db.collection('personalized_tutorials').add({
+        userId: params.userId,
+        tutorialType: params.tutorialType || 'general_features',
+        contentItems: params.contentItems || ['basics', 'advanced_features', 'tips_tricks'],
+        difficulty: params.difficulty || 'beginner',
+        interactive: params.interactive || true,
+        personalized: params.personalized || true,
+        withGamification: params.withGamification || false,
+        status: 'available',
+        progress: 0,
+        createdAt: FieldValue.serverTimestamp(),
+        lastAccessedAt: null,
+        completedItems: [],
+        source: 'retention_automation'
+      });
+
+      // Send notification about new tutorial
+      await this.sendPersonalizedEmail({
+        userId: params.userId,
+        templateId: 'new_tutorial',
+        subject: 'Your Personalized Learning Path is Ready!',
+        personalizedContent: {
+          tutorialType: params.tutorialType || 'general_features',
+          difficulty: params.difficulty || 'beginner',
+          itemCount: (params.contentItems || ['basics', 'advanced_features', 'tips_tricks']).length,
+          interactive: params.interactive || true
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Failed to create personalized tutorial:', error);
+      return false;
+    }
+  }
+
+  private async createSupportTicket(params: {
+    userId: string;
+    type?: string;
+    priority?: string;
+    autoAssign?: boolean;
+    proactiveOutreach?: boolean;
+    subject?: string;
+    description?: string;
+    category?: string;
+  }): Promise<boolean> {
+    try {
+      await this.db.collection('support_tickets').add({
+        userId: params.userId,
+        type: params.type || 'general',
+        subject: params.subject || 'Proactive Support Outreach',
+        description: params.description || 'Automated retention support ticket',
+        priority: params.priority || 'medium',
+        category: params.category || 'retention',
+        autoAssign: params.autoAssign || true,
+        proactiveOutreach: params.proactiveOutreach || false,
+        status: 'open',
+        assignedTo: params.autoAssign ? 'retention_team' : null,
+        createdAt: FieldValue.serverTimestamp(),
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+        tags: ['retention', 'automated'],
+        internalNotes: 'Generated by retention automation system',
+        source: 'retention_automation'
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to create support ticket:', error);
+      return false;
+    }
+  }
+
+  private async createCalendarEvent(params: {
+    userId: string;
+    type?: string;
+    duration?: number;
+    personalizedAgenda?: boolean;
+    followUpRequired?: boolean;
+    title?: string;
+    description?: string;
+    startTime?: Date;
+    invitees?: string[];
+  }): Promise<boolean> {
+    try {
+      const startTime = params.startTime || new Date(Date.now() + 24 * 60 * 60 * 1000); // Default: tomorrow
+      const duration = params.duration || 30; // Default: 30 minutes
+      const endTime = new Date(startTime.getTime() + duration * 60000);
+      const title = params.title || `${params.type || 'Consultation'} - CVPlus`;
+      const description = params.description || 'Automated retention consultation';
+
+      await this.db.collection('calendar_events').add({
+        userId: params.userId,
+        type: params.type || 'consultation',
+        title,
+        description,
+        startTime,
+        endTime,
+        duration,
+        personalizedAgenda: params.personalizedAgenda || true,
+        followUpRequired: params.followUpRequired || true,
+        invitees: params.invitees || [params.userId],
+        status: 'scheduled',
+        createdAt: FieldValue.serverTimestamp(),
+        reminderSent: false,
+        attendeeStatus: {},
+        source: 'retention_automation'
+      });
+
+      // Send calendar invite email
+      const invitees = params.invitees || [params.userId];
+      for (const invitee of invitees) {
+        await this.sendPersonalizedEmail({
+          userId: invitee,
+          templateId: 'calendar_invite',
+          subject: `Meeting Invitation: ${title}`,
+          personalizedContent: {
+            title,
+            description,
+            startTime: startTime.toLocaleString(),
+            duration,
+            type: params.type || 'consultation'
+          }
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to create calendar event:', error);
+      return false;
+    }
+  }
 
   // Database operations
   private async getActiveCampaign(userId: string): Promise<RetentionCampaign | null> {

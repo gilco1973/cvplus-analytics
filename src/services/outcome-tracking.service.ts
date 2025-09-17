@@ -13,6 +13,8 @@ import { BaseService, ServiceConfig } from '../shared/base-service';
 import { UserOutcome, OutcomeEvent } from '../types/user-outcomes';
 import { AnalyticsEvent } from '../types/analytics';
 import { Logger } from '../shared/logger';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Outcome tracking configuration interface
@@ -225,12 +227,40 @@ export class OutcomeTrackingService extends BaseService {
    * Get industry benchmark data
   */
   private async getIndustryBenchmark(industry: string): Promise<any> {
-    // Implementation would query historical data for industry benchmarks
-    // This is a placeholder for the actual implementation
+    const db = getFirestore();
+
+    // Get historical data for this industry
+    const outcomes = await db.collection('user_outcomes')
+      .where('jobDetails.industry', '==', industry)
+      .where('finalResult.status', '==', 'success')
+      .limit(1000)
+      .get();
+
+    if (outcomes.empty) {
+      // Default benchmarks if no data available
+      return {
+        averageResponseTime: 14,
+        successRate: 0.15,
+        competitiveness: 'medium'
+      };
+    }
+
+    const data = outcomes.docs.map(doc => doc.data());
+    const responseTimes = data
+      .filter(d => d.finalResult?.timeToResult)
+      .map(d => d.finalResult.timeToResult);
+
+    const averageResponseTime = responseTimes.length > 0
+      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+      : 14;
+
+    const successRate = data.length / 1000; // Approximation based on sample
+
     return {
-      averageResponseTime: 14, // days
-      successRate: 0.15, // 15% industry average
-      competitiveness: 'medium'
+      averageResponseTime: Math.round(averageResponseTime),
+      successRate: Math.min(1, successRate),
+      competitiveness: successRate > 0.2 ? 'high' : successRate > 0.1 ? 'medium' : 'low',
+      sampleSize: data.length
     };
   }
 
@@ -238,21 +268,36 @@ export class OutcomeTrackingService extends BaseService {
    * Calculate predicted success based on historical data and ML models
   */
   private async calculatePredictedSuccess(outcome: UserOutcome): Promise<number> {
-    // Implementation would use ML models to predict success probability
-    // This is a placeholder for the actual implementation
-    let score = 0.5; // Base score
-    
-    // Factor in ATS score
+    let score = 0.3; // Conservative base score
+
+    // Factor in ATS score (30% weight)
     if (outcome.cvData.atsScore) {
       score += (outcome.cvData.atsScore / 100) * 0.3;
     }
-    
-    // Factor in CV optimizations
+
+    // Factor in CV optimizations (20% weight)
     if (outcome.cvData.optimizationsApplied.length > 0) {
-      score += outcome.cvData.optimizationsApplied.length * 0.05;
+      const optimizationScore = Math.min(0.2, outcome.cvData.optimizationsApplied.length * 0.04);
+      score += optimizationScore;
+    }
+
+    // Factor in industry benchmark (25% weight)
+    try {
+      const benchmark = await this.getIndustryBenchmark(outcome.jobDetails.industry);
+      score += benchmark.successRate * 0.25;
+    } catch (error) {
+      console.warn('Could not get industry benchmark:', error);
+    }
+
+    // Factor in historical user performance (25% weight)
+    try {
+      const userHistory = await this.getUserSuccessHistory(outcome.userId);
+      score += userHistory.successRate * 0.25;
+    } catch (error) {
+      console.warn('Could not get user history:', error);
     }
     
-    return Math.min(Math.max(score, 0), 1);
+    return Math.min(Math.max(score, 0.05), 0.95); // Cap between 5% and 95%
   }
 
   /**
@@ -263,16 +308,83 @@ export class OutcomeTrackingService extends BaseService {
     dateRange?: { start: Date; end: Date }
   ): Promise<OutcomeAnalytics> {
     try {
-      // This would query the Firestore database for user outcomes
-      // Implementation placeholder
-      
+      // Query the Firestore database for user outcomes
+      const db = getFirestore();
+      const startDate = dateRange?.start || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // Default: 1 year ago
+      const endDate = dateRange?.end || new Date();
+
+      const outcomesQuery = await db.collection('user_outcomes')
+        .where('userId', '==', userId)
+        .where('trackingDate', '>=', startDate)
+        .where('trackingDate', '<=', endDate)
+        .get();
+
+      const outcomes = outcomesQuery.docs.map(doc => doc.data());
+      const totalOutcomes = outcomes.length;
+
+      // Calculate success rate
+      const successfulOutcomes = outcomes.filter(o =>
+        o.status === 'success' ||
+        o.interviewScheduled ||
+        o.offerReceived
+      ).length;
+      const successRate = totalOutcomes > 0 ? successfulOutcomes / totalOutcomes : 0;
+
+      // Calculate average time to response
+      const responseTimes = outcomes.filter(o => o.responseTime).map(o => o.responseTime);
+      const averageTimeToResponse = responseTimes.length > 0 ?
+        responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length : 0;
+
+      // Extract common rejection reasons
+      const rejectionReasons = outcomes
+        .filter(o => o.rejectionReason)
+        .map(o => o.rejectionReason);
+      const reasonCounts: Record<string, number> = {};
+      rejectionReasons.forEach(reason => {
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+      });
+      const commonRejectionReasons = Object.entries(reasonCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([reason, count]) => ({ reason, count, percentage: count / totalOutcomes }));
+
+      // Industry breakdown
+      const industries = outcomes.map(o => o.industry).filter(Boolean);
+      const industryCounts: Record<string, number> = {};
+      industries.forEach(industry => {
+        industryCounts[industry] = (industryCounts[industry] || 0) + 1;
+      });
+      const industryBreakdown = Object.entries(industryCounts)
+        .map(([industry, count]) => ({ industry, count, percentage: count / totalOutcomes }));
+
+      // Monthly trends
+      const monthlyData: Record<string, { total: number; successful: number }> = {};
+      outcomes.forEach(outcome => {
+        const month = new Date(outcome.trackingDate.toDate()).toISOString().slice(0, 7);
+        if (!monthlyData[month]) {
+          monthlyData[month] = { total: 0, successful: 0 };
+        }
+        monthlyData[month].total++;
+        if (outcome.status === 'success' || outcome.interviewScheduled || outcome.offerReceived) {
+          monthlyData[month].successful++;
+        }
+      });
+      const monthlyTrends = Object.entries(monthlyData)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, data]) => ({
+          month,
+          totalApplications: data.total,
+          successfulOutcomes: data.successful,
+          successRate: data.total > 0 ? data.successful / data.total : 0
+        }));
+
       const analytics: OutcomeAnalytics = {
-        totalOutcomes: 0,
-        successRate: 0,
-        averageTimeToResponse: 0,
-        commonRejectionReasons: [],
-        industryBreakdown: [],
-        monthlyTrends: []
+        totalOutcomes,
+        successRate,
+        averageTimeToResponse,
+        commonRejectionReasons,
+        industryBreakdown,
+        monthlyTrends
       };
       
       this.logger.info('Generated outcome analytics', { userId, analytics });
@@ -397,6 +509,35 @@ export class OutcomeTrackingService extends BaseService {
       status: 'healthy',
       outcomeTracking: 'operational',
       mlDataCollection: this.config.enableMLDataCollection ? 'enabled' : 'disabled'
+    };
+  }
+
+  /**
+   * Get user's historical success rate
+   */
+  private async getUserSuccessHistory(userId: string): Promise<{ successRate: number; totalApplications: number }> {
+    const db = getFirestore();
+
+    // Get user's historical outcomes
+    const outcomes = await db.collection('user_outcomes')
+      .where('userId', '==', userId)
+      .where('finalResult.status', 'in', ['success', 'rejection'])
+      .limit(100)
+      .get();
+
+    if (outcomes.empty) {
+      return {
+        successRate: 0.1, // Default conservative rate for new users
+        totalApplications: 0
+      };
+    }
+
+    const data = outcomes.docs.map(doc => doc.data());
+    const successCount = data.filter(d => d.finalResult?.status === 'success').length;
+
+    return {
+      successRate: successCount / data.length,
+      totalApplications: data.length
     };
   }
 }

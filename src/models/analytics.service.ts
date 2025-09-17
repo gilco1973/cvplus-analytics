@@ -28,30 +28,225 @@ import {
   runTransaction
 } from 'firebase-admin/firestore';
 import {
-  AnalyticsEvent,
-  EventType,
-  // AnalyticsAggregate,
-  // RealTimeAnalytics,
-  // validateAnalyticsEvent,
-  // isAnalyticsEvent,
-  // GenerationStatus,
-  // ReferrerCategory,
-  // AnomalyType,
-  // generateAggregateId,
-  // calculateBounceRate,
-  // calculateConversionRate,
-  // anonymizeIpAddress,
-  // isBotTraffic,
-  // getPeriodBoundaries,
-  // calculateGeographicDiversity,
-  // formatAnalyticsNumber,
-  // calculateGrowthRate
+  AnalyticsEvent
 } from '../types/analytics-core.types';
+import { EventType } from '../types/tracking.types';
 import {
   EntityType,
   AggregationPeriod
 } from '../types/analytics.types';
 import { logger } from 'firebase-functions/v2';
+
+// ============================================================================
+// Analytics Types (temporary definitions until types are properly organized)
+// ============================================================================
+
+interface AnalyticsAggregate {
+  id: string;
+  entityType: EntityType;
+  entityId: string;
+  period: AggregationPeriod;
+  startTime: Timestamp;
+  endTime: Timestamp;
+  viewCount: number;
+  uniqueViewCount: number;
+  downloadCount: number;
+  shareCount: number;
+  contactFormSubmissions: number;
+  calendarBookings: number;
+  averageEngagementTime: number;
+  bounceRate: number;
+  averagePageDepth: number;
+  returnVisitorRate: number;
+  conversionCount: number;
+  conversionRate: number;
+  topCountries: any[];
+  geographicDiversity: number;
+  topReferrers: any[];
+  directTrafficRate: number;
+  deviceBreakdown: any;
+  browserStats: any[];
+  topSections: any[];
+  featureUsage: any[];
+  dataCompleteness: number;
+  lastUpdated: Timestamp;
+
+  // Additional properties used in get.ts
+  eventCount: number;
+  uniqueUserIds?: string[];
+  eventType?: EventType;
+}
+
+interface RealTimeAnalytics {
+  entityId: string;
+  entityType: EntityType;
+  currentUsers: number;
+  recentEvents: number;
+  lastHourViews: number;
+  trendingContent: any[];
+  trafficSpike: boolean;
+  anomalies: any[];
+  avgResponseTime: number;
+  errorRate: number;
+  lastUpdated: Timestamp;
+}
+
+enum ReferrerCategory {
+  SEARCH_ENGINE = 'search_engine',
+  SOCIAL_MEDIA = 'social_media',
+  EMAIL = 'email',
+  REFERRAL = 'referral',
+  OTHER = 'other'
+}
+
+// Temporary AnalyticsEvent interface that matches what the service expects
+interface ServiceAnalyticsEvent {
+  id: string;
+  entityType: EntityType;
+  entityId: string;
+  eventType: EventType;
+  userId?: string;
+  sessionId: string;
+  timestamp: Timestamp;
+  duration?: number;
+  ipAddress: string;
+  userAgent: string;
+  referrer?: string;
+  country?: string;
+  fingerprint?: string;
+  customProperties?: any;
+  eventData: any;
+  isAnonymized: boolean;
+  retentionExpiresAt: Timestamp;
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+function anonymizeIpAddress(ipAddress: string): string {
+  // Simple IP anonymization - zero out last octet for IPv4
+  if (ipAddress.includes('.')) {
+    const parts = ipAddress.split('.');
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+    }
+  }
+  // For IPv6 or other formats, just return anonymized placeholder
+  return '0.0.0.0';
+}
+
+function isBotTraffic(userAgent: string): boolean {
+  const botPatterns = [
+    'bot', 'crawler', 'spider', 'scraper', 'facebookexternalhit',
+    'twitterbot', 'linkedinbot', 'whatsapp', 'slackbot'
+  ];
+  const ua = userAgent.toLowerCase();
+  return botPatterns.some(pattern => ua.includes(pattern));
+}
+
+function validateAnalyticsEvent(event: any): string[] {
+  const errors: string[] = [];
+
+  if (!event.entityType) errors.push('entityType is required');
+  if (!event.entityId) errors.push('entityId is required');
+  if (!event.eventType) errors.push('eventType is required');
+  if (!event.sessionId) errors.push('sessionId is required');
+  if (!event.timestamp) errors.push('timestamp is required');
+
+  return errors;
+}
+
+function isAnalyticsEvent(data: any): boolean {
+  return data &&
+    typeof data.entityType === 'string' &&
+    typeof data.entityId === 'string' &&
+    typeof data.eventType === 'string' &&
+    typeof data.sessionId === 'string' &&
+    data.timestamp;
+}
+
+function generateAggregateId(
+  entityType: EntityType,
+  entityId: string,
+  period: AggregationPeriod,
+  startTime: Timestamp
+): string {
+  const dateStr = startTime.toDate().toISOString().split('T')[0];
+  return `${entityType}_${entityId}_${period}_${dateStr}`;
+}
+
+function getPeriodBoundaries(period: AggregationPeriod, startTime: Timestamp): {
+  start: Timestamp;
+  end: Timestamp;
+} {
+  const date = startTime.toDate();
+  let start: Date;
+  let end: Date;
+
+  switch (period) {
+    case 'hour':
+      start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours());
+      end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hour
+      break;
+    case 'day':
+      start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      end = new Date(start.getTime() + 24 * 60 * 60 * 1000); // +1 day
+      break;
+    case 'week':
+      const dayOfWeek = date.getDay();
+      start = new Date(date.getTime() - dayOfWeek * 24 * 60 * 60 * 1000);
+      start = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 days
+      break;
+    case 'month':
+      start = new Date(date.getFullYear(), date.getMonth(), 1);
+      end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+      break;
+    case 'year':
+      start = new Date(date.getFullYear(), 0, 1);
+      end = new Date(date.getFullYear() + 1, 0, 1);
+      break;
+    default:
+      start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  return {
+    start: Timestamp.fromDate(start),
+    end: Timestamp.fromDate(end)
+  };
+}
+
+function calculateBounceRate(totalSessions: number, bouncedSessions: number): number {
+  if (totalSessions === 0) return 0;
+  return Math.round((bouncedSessions / totalSessions) * 100 * 10) / 10;
+}
+
+function calculateConversionRate(uniqueViews: number, conversions: number): number {
+  if (uniqueViews === 0) return 0;
+  return Math.round((conversions / uniqueViews) * 100 * 10) / 10;
+}
+
+function calculateGeographicDiversity(countries: any[]): number {
+  if (countries.length <= 1) return 0;
+
+  // Simple diversity calculation based on entropy
+  const totalViews = countries.reduce((sum, country) => sum + country.viewCount, 0);
+  if (totalViews === 0) return 0;
+
+  let entropy = 0;
+  countries.forEach(country => {
+    const probability = country.viewCount / totalViews;
+    if (probability > 0) {
+      entropy -= probability * Math.log2(probability);
+    }
+  });
+
+  // Normalize to 0-1 scale
+  const maxEntropy = Math.log2(countries.length);
+  return maxEntropy > 0 ? Math.round((entropy / maxEntropy) * 100) / 100 : 0;
+}
 
 // ============================================================================
 // Service Configuration
@@ -131,8 +326,8 @@ function invalidateCache(collection: string, id: string): void {
  * Track an analytics event
 */
 export async function trackEvent(
-  eventData: Omit<AnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>
-): Promise<AnalyticsEvent> {
+  eventData: Omit<ServiceAnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>
+): Promise<ServiceAnalyticsEvent> {
   const db = getFirestore();
   const eventsRef = collection(db, EVENTS_COLLECTION);
   const newEventRef = doc(eventsRef);
@@ -146,7 +341,7 @@ export async function trackEvent(
   // Check if it's bot traffic
   const isBot = isBotTraffic(eventData.userAgent);
 
-  const event: AnalyticsEvent = {
+  const event: ServiceAnalyticsEvent = {
     ...eventData,
     id: newEventRef.id,
     ipAddress: anonymizedIpAddress,
@@ -193,11 +388,11 @@ export async function trackEvent(
 /**
  * Get analytics event by ID
 */
-export async function getAnalyticsEvent(id: string): Promise<AnalyticsEvent | null> {
+export async function getAnalyticsEvent(id: string): Promise<ServiceAnalyticsEvent | null> {
   // Check cache first
   const cached = getCachedData(EVENTS_COLLECTION, id);
   if (cached) {
-    return cached as AnalyticsEvent;
+    return cached as ServiceAnalyticsEvent;
   }
 
   const db = getFirestore();
@@ -217,7 +412,7 @@ export async function getAnalyticsEvent(id: string): Promise<AnalyticsEvent | nu
       throw new Error('Invalid analytics event data structure');
     }
 
-    const event = data as AnalyticsEvent;
+    const event = data as ServiceAnalyticsEvent;
     setCachedData(EVENTS_COLLECTION, event.id, event);
 
     return event;
@@ -246,7 +441,7 @@ export interface AnalyticsEventQueryOptions {
 }
 
 export async function queryAnalyticsEvents(options: AnalyticsEventQueryOptions = {}): Promise<{
-  events: AnalyticsEvent[];
+  events: ServiceAnalyticsEvent[];
   lastDoc: DocumentSnapshot | null;
   hasMore: boolean;
 }> {
@@ -311,11 +506,11 @@ export async function queryAnalyticsEvents(options: AnalyticsEventQueryOptions =
       docs.pop(); // Remove the extra document
     }
 
-    const events: AnalyticsEvent[] = [];
+    const events: ServiceAnalyticsEvent[] = [];
     for (const doc of docs) {
       const data = doc.data();
       if (isAnalyticsEvent(data)) {
-        events.push(data as AnalyticsEvent);
+        events.push(data as ServiceAnalyticsEvent);
       } else {
         logger.warn('Invalid AnalyticsEvent data in query result', { docId: doc.id });
       }
@@ -403,7 +598,7 @@ function calculateAggregateMetrics(
   period: AggregationPeriod,
   startTime: Timestamp,
   endTime: Timestamp,
-  events: AnalyticsEvent[]
+  events: ServiceAnalyticsEvent[]
 ): AnalyticsAggregate {
   const viewEvents = events.filter(e => e.eventType === EventType.VIEW);
   const downloadEvents = events.filter(e => e.eventType === EventType.DOWNLOAD);
@@ -643,7 +838,12 @@ function calculateAggregateMetrics(
     topSections,
     featureUsage,
     dataCompleteness,
-    lastUpdated: Timestamp.now()
+    lastUpdated: Timestamp.now(),
+
+    // Additional properties
+    eventCount: events.length,
+    uniqueUserIds: Array.from(new Set(events.map(e => e.userId).filter(Boolean))),
+    eventType: events.length > 0 ? events[0].eventType : undefined
   };
 }
 
@@ -904,14 +1104,109 @@ export function getCacheStats(): {
 }
 
 /**
+ * Get analytics aggregates for an entity
+*/
+export async function getAnalyticsAggregates(
+  entityType: EntityType,
+  entityId: string,
+  period: AggregationPeriod = 'month',
+  startDate?: Timestamp,
+  endDate?: Timestamp
+): Promise<AnalyticsAggregate[]> {
+  const db = getFirestore();
+  const aggregatesRef = collection(db, AGGREGATES_COLLECTION);
+
+  let q = query(
+    aggregatesRef,
+    where('entityType', '==', entityType),
+    where('entityId', '==', entityId),
+    where('period', '==', period)
+  );
+
+  if (startDate) {
+    q = query(q, where('startTime', '>=', startDate));
+  }
+
+  if (endDate) {
+    q = query(q, where('endTime', '<=', endDate));
+  }
+
+  q = query(q, orderBy('startTime', 'desc'), firestoreLimit(100));
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const aggregates: AnalyticsAggregate[] = [];
+
+    querySnapshot.docs.forEach(doc => {
+      const data = doc.data() as AnalyticsAggregate;
+      aggregates.push(data);
+    });
+
+    logger.debug('Retrieved analytics aggregates', {
+      entityType,
+      entityId,
+      period,
+      count: aggregates.length
+    });
+
+    return aggregates;
+  } catch (error) {
+    logger.error('Failed to get analytics aggregates', { error, entityType, entityId });
+    throw new Error(`Failed to get analytics aggregates: ${error}`);
+  }
+}
+
+/**
+ * Get analytics events for an entity
+*/
+export async function getAnalyticsEvents(
+  entityType: EntityType,
+  entityId: string,
+  startDate?: Timestamp,
+  endDate?: Timestamp,
+  eventTypes?: EventType[],
+  limit: number = 1000
+): Promise<ServiceAnalyticsEvent[]> {
+  const queryOptions: AnalyticsEventQueryOptions = {
+    entityType,
+    entityId,
+    startDate,
+    endDate,
+    limit: Math.min(limit, BATCH_SIZE)
+  };
+
+  try {
+    const result = await queryAnalyticsEvents(queryOptions);
+    let events = result.events;
+
+    // Filter by event types if specified
+    if (eventTypes && eventTypes.length > 0) {
+      events = events.filter(event => eventTypes.includes(event.eventType));
+    }
+
+    logger.debug('Retrieved analytics events', {
+      entityType,
+      entityId,
+      eventTypesFilter: eventTypes,
+      count: events.length
+    });
+
+    return events;
+  } catch (error) {
+    logger.error('Failed to get analytics events', { error, entityType, entityId });
+    throw new Error(`Failed to get analytics events: ${error}`);
+  }
+}
+
+/**
  * Batch track multiple events
 */
 export async function batchTrackEvents(
-  eventsData: Array<Omit<AnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>>
-): Promise<AnalyticsEvent[]> {
+  eventsData: Array<Omit<ServiceAnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>>
+): Promise<ServiceAnalyticsEvent[]> {
   const db = getFirestore();
   const batch = db.batch();
-  const events: AnalyticsEvent[] = [];
+  const events: ServiceAnalyticsEvent[] = [];
 
   const now = Timestamp.now();
   const retentionDate = Timestamp.fromMillis(now.toMillis() + (MAX_EVENT_AGE_DAYS * 24 * 60 * 60 * 1000));
@@ -920,7 +1215,7 @@ export async function batchTrackEvents(
     const eventsRef = collection(db, EVENTS_COLLECTION);
     const newEventRef = doc(eventsRef);
 
-    const event: AnalyticsEvent = {
+    const event: ServiceAnalyticsEvent = {
       ...eventData,
       id: newEventRef.id,
       ipAddress: anonymizeIpAddress(eventData.ipAddress),

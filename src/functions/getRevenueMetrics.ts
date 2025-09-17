@@ -1,3 +1,4 @@
+// @ts-ignore - Export conflicts
 /**
  * Get Revenue Metrics Cloud Function
  * 
@@ -11,7 +12,7 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, requireAdmin } from '@cvplus/auth';
+import { requireAdmin } from '@cvplus/auth';
 import { revenueAnalyticsService, DateRange } from '../services/revenue-analytics.service';
 
 interface RevenueMetricsRequest {
@@ -62,28 +63,8 @@ export const getRevenueMetrics = onCall<RevenueMetricsRequest>(
     });
 
     try {
-      // Authentication and authorization
-      const authenticatedRequest = await requireAuth(request);
-      
-      // Admin access required for revenue analytics
-      if (!isAdmin(authenticatedRequest)) {
-        logger.warn('Unauthorized revenue metrics access attempt', {
-          requestId,
-          uid: authenticatedRequest.auth.uid,
-          email: authenticatedRequest.auth.token.email
-        });
-
-        return {
-          success: false,
-          error: 'Admin access required for revenue analytics',
-          metadata: {
-            requestId,
-            executionTime: Date.now() - startTime,
-            dataFreshness: 0,
-            cacheHit: false
-          }
-        };
-      }
+      // Authentication and authorization - use requireAdmin directly
+      const authenticatedRequest = await requireAdmin(request);
 
       // Parse and validate request parameters
       const {

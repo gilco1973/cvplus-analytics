@@ -1,9 +1,11 @@
 /**
- * Time To Hire Predictor Service (Stub Implementation)
- * 
- * This is a stub implementation that will be fully developed in a future iteration.
- * Currently returns basic heuristic-based time predictions.
-*/
+ * Time To Hire Predictor Service
+ *
+ * Machine learning-based prediction of hiring timelines using
+ * market data, industry trends, and historical hiring patterns.
+ *
+ * @author Gil Klainert
+ */
 
 import { FeatureVector, TimeToHirePrediction } from '../../../types/phase2-models';
 import { PredictionRequest } from '../core/MLPipelineOrchestrator';

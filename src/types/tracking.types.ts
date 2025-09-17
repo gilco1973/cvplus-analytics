@@ -6,11 +6,29 @@
  * Core event types for CVPlus analytics system
 */
 export enum EventType {
+  // Basic tracking events
   TRACK = 'track',          // User action tracking
   PAGE = 'page',            // Page view tracking
   IDENTIFY = 'identify',    // User identification
   GROUP = 'group',          // Group association
-  SCREEN = 'screen'         // Mobile screen tracking
+  SCREEN = 'screen',        // Mobile screen tracking
+
+  // Analytics events used in services
+  VIEW = 'view',                    // Content view events
+  DOWNLOAD = 'download',            // Download events
+  SOCIAL_SHARE = 'social_share',    // Social sharing events
+  CONTACT_FORM_SUBMIT = 'contact_form_submit', // Contact form submissions
+  CALENDAR_BOOKING = 'calendar_booking',       // Calendar booking events
+  SECTION_VIEW = 'section_view',    // Section view tracking
+  FEATURE_INTERACTION = 'feature_interaction', // Feature interaction events
+
+  // CV specific events
+  CV_GENERATED = 'cv_generated',
+  CV_DOWNLOADED = 'cv_downloaded',
+  CV_SHARED = 'cv_shared',
+  APPLICATION_SUBMITTED = 'application_submitted',
+  OUTCOME_REPORTED = 'outcome_reported',
+  FEATURE_USED = 'feature_used'
 }
 
 /**

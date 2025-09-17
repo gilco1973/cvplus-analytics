@@ -11,7 +11,7 @@
 
 import { onCall } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAuth, requireAdmin } from '@cvplus/auth';
+import { requireAdmin } from '@cvplus/auth';
 import { churnPredictionService } from '../../services/churn-prediction.service';
 import { retentionAutomationService } from '../../services/retention-automation.service';
 
@@ -65,28 +65,8 @@ export const predictChurn = onCall<ChurnPredictionRequest>(
     });
 
     try {
-      // Authentication and authorization
-      const authenticatedRequest = await requireAuth(request);
-      
-      // Admin access required for churn predictions
-      if (!isAdmin(authenticatedRequest)) {
-        logger.warn('Unauthorized churn prediction access attempt', {
-          requestId,
-          uid: authenticatedRequest.auth.uid,
-          email: authenticatedRequest.auth.token.email
-        });
-
-        return {
-          success: false,
-          error: 'Admin access required for churn predictions',
-          metadata: {
-            requestId,
-            executionTime: Date.now() - startTime,
-            modelVersion: '1.0.0',
-            predictionAccuracy: 0
-          }
-        };
-      }
+      // Authentication and authorization - use requireAdmin directly
+      const authenticatedRequest = await requireAdmin(request);
 
       // Parse request parameters
       const {

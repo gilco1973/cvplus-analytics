@@ -212,7 +212,14 @@ export class CVPlusAnalyticsSDK {
 
       // Update session with user ID
       await this.sessionManager.setUserId(userId);
-      
+
+      // Update privacy manager with user ID
+      this.privacyManager.setUserId(userId);
+
+      // Update event queue with session info
+      const session = this.sessionManager.getCurrentSession();
+      this.eventQueue.setSessionInfo(session?.sessionId, userId);
+
       await this.enqueueEvent(event);
 
       if (this.config.debug) {
@@ -545,10 +552,54 @@ export class CVPlusAnalyticsSDK {
   }
 
   private trackWebVitals(): void {
-    // Implementation would use web-vitals library
-    // This is a placeholder for the actual implementation
-    if (this.config.debug) {
-      console.log('[CVPlus Analytics] Web Vitals tracking enabled');
+    if (typeof window === 'undefined') return;
+
+    // Track Core Web Vitals using performance API
+    try {
+      // Largest Contentful Paint (LCP)
+      new PerformanceObserver((entryList) => {
+        const entries = entryList.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        this.track('web_vital', {
+          metric: 'LCP',
+          value: lastEntry.startTime,
+          rating: lastEntry.startTime > 2500 ? 'poor' : lastEntry.startTime > 1200 ? 'needs-improvement' : 'good'
+        });
+      }).observe({ entryTypes: ['largest-contentful-paint'] });
+
+      // First Input Delay (FID)
+      new PerformanceObserver((entryList) => {
+        const entries = entryList.getEntries();
+        entries.forEach(entry => {
+          const fid = entry.processingStart - entry.startTime;
+          this.track('web_vital', {
+            metric: 'FID',
+            value: fid,
+            rating: fid > 100 ? 'poor' : fid > 25 ? 'needs-improvement' : 'good'
+          });
+        });
+      }).observe({ entryTypes: ['first-input'] });
+
+      // Cumulative Layout Shift (CLS)
+      let clsValue = 0;
+      new PerformanceObserver((entryList) => {
+        const entries = entryList.getEntries();
+        entries.forEach(entry => {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+          }
+        });
+        this.track('web_vital', {
+          metric: 'CLS',
+          value: clsValue,
+          rating: clsValue > 0.25 ? 'poor' : clsValue > 0.1 ? 'needs-improvement' : 'good'
+        });
+      }).observe({ entryTypes: ['layout-shift'] });
+
+    } catch (error) {
+      if (this.config.debug) {
+        console.warn('[CVPlus Analytics] Web Vitals tracking failed:', error);
+      }
     }
   }
 
@@ -589,6 +640,25 @@ export class CVPlusAnalyticsSDK {
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36);
+  }
+
+  private async getAuthToken(): Promise<string> {
+    // Get auth token from CVPlus auth service
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const authData = localStorage.getItem('cvplus_auth');
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          return parsed.accessToken || '';
+        }
+      }
+
+      // Fallback to API key if no user token
+      return this.config.transport?.apiKey || '';
+    } catch (error) {
+      console.warn('[CVPlus Analytics] Auth token unavailable:', error);
+      return this.config.transport?.apiKey || '';
+    }
   }
 
   private getBrowserInfo() {
@@ -768,6 +838,7 @@ class SessionManager {
 */
 class PrivacyManager {
   private privacyConfig: AnalyticsConfig['privacy'];
+  private userId: string | undefined;
   private currentConsent: Record<ConsentCategory, boolean> = {
     [ConsentCategory.NECESSARY]: true,
     [ConsentCategory.ANALYTICS]: false,
@@ -778,7 +849,28 @@ class PrivacyManager {
 
   constructor(privacyConfig: AnalyticsConfig['privacy']) {
     this.privacyConfig = privacyConfig;
+    this.userId = undefined;
     this.initializeConsent();
+  }
+
+  setUserId(userId: string): void {
+    this.userId = userId;
+  }
+
+  private async getAuthToken(): Promise<string> {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const authData = localStorage.getItem('cvplus_auth');
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          return parsed.accessToken || '';
+        }
+      }
+      return '';
+    } catch (error) {
+      console.warn('[CVPlus Analytics] Auth token unavailable:', error);
+      return '';
+    }
   }
 
   private initializeConsent(): void {
@@ -835,8 +927,19 @@ class PrivacyManager {
       withdrawn: false
     };
     
-    // Store consent record (implementation would send to server)
-    console.log('[CVPlus Analytics] Consent updated:', consentRecord);
+    // Store consent record to server
+    try {
+      await fetch('/api/privacy/consent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify(consentRecord)
+      });
+    } catch (error) {
+      console.warn('[CVPlus Analytics] Failed to store consent record:', error);
+    }
   }
 
   async getPrivacyMetadata() {
@@ -882,13 +985,76 @@ class PrivacyManager {
   }
 
   async requestUserData(): Promise<DataAccessRequest> {
-    // Implementation would create a data access request
-    throw new Error('Data access request not implemented');
+    try {
+      const response = await fetch('/api/privacy/data-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify({
+          userId: this.userId || 'anonymous',
+          requestType: 'data_access',
+          timestamp: new Date().toISOString(),
+          scope: ['analytics', 'tracking', 'preferences']
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Data access request failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return {
+        requestId: result.requestId || `req_${Date.now()}`,
+        userId: this.userId || 'anonymous',
+        status: 'processing',
+        requestedAt: new Date(),
+        dataTypes: ['analytics', 'tracking', 'preferences'],
+        estimatedCompletion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      };
+    } catch (error) {
+      console.error('Failed to request user data:', error);
+      throw error;
+    }
   }
 
   async requestDataDeletion(reason: string): Promise<DataDeletionRequest> {
-    // Implementation would create a data deletion request
-    throw new Error('Data deletion request not implemented');
+    try {
+      const response = await fetch('/api/privacy/data-deletion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify({
+          userId: this.userId || 'anonymous',
+          requestType: 'data_deletion',
+          reason,
+          timestamp: new Date().toISOString(),
+          scope: ['analytics', 'tracking', 'preferences', 'personal_data']
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Data deletion request failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return {
+        requestId: result.requestId || `del_${Date.now()}`,
+        userId: this.userId || 'anonymous',
+        status: 'processing',
+        requestedAt: new Date(),
+        reason,
+        dataTypes: ['analytics', 'tracking', 'preferences', 'personal_data'],
+        estimatedCompletion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        confirmationRequired: true
+      };
+    } catch (error) {
+      console.error('Failed to request data deletion:', error);
+      throw error;
+    }
   }
 }
 
@@ -900,9 +1066,35 @@ class EventQueue {
   private config: AnalyticsConfig['queue'];
   private processing: boolean = false;
   private flushTimer: NodeJS.Timeout | null = null;
+  private retryCount: number = 0;
+  private sessionId: string | undefined;
+  private userId: string | undefined;
 
   constructor(config: AnalyticsConfig['queue']) {
     this.config = config;
+    this.sessionId = undefined;
+    this.userId = undefined;
+  }
+
+  setSessionInfo(sessionId: string | undefined, userId: string | undefined): void {
+    this.sessionId = sessionId;
+    this.userId = userId;
+  }
+
+  private async getAuthToken(): Promise<string> {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const authData = localStorage.getItem('cvplus_auth');
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          return parsed.accessToken || '';
+        }
+      }
+      return '';
+    } catch (error) {
+      console.warn('[CVPlus Analytics] Auth token unavailable:', error);
+      return '';
+    }
   }
 
   async enqueue(event: AnalyticsEvent): Promise<void> {
@@ -930,15 +1122,41 @@ class EventQueue {
     const batch = this.queue.splice(0, this.config.flushBatchSize);
     
     try {
-      // Send batch to transport
-      // Implementation would send to analytics endpoint
-      console.log('[CVPlus Analytics] Flushing batch:', batch.length, 'events');
-      
+      // Send batch to Firebase Functions analytics endpoint
+      const response = await fetch('/analytics/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: JSON.stringify({
+          events: batch,
+          sessionId: this.sessionId,
+          userId: this.userId,
+          timestamp: Date.now()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Analytics API error: ${response.status}`);
+      }
+
+      if (this.config.debug) {
+        console.log('[CVPlus Analytics] Successfully flushed batch:', batch.length, 'events');
+      }
+
     } catch (error) {
       console.error('[CVPlus Analytics] Failed to flush events:', error);
-      
+
       // Return events to queue for retry
       this.queue.unshift(...batch);
+
+      // Exponential backoff for retries
+      setTimeout(() => {
+        if (this.queue.length > 0) {
+          this.flush();
+        }
+      }, Math.min(30000, 1000 * Math.pow(2, this.retryCount++)));
     }
   }
 
@@ -958,14 +1176,41 @@ class EventTransport {
   }
 
   async sendBatch(events: AnalyticsEvent[]): Promise<EventProcessingResult[]> {
-    // Implementation would send events to analytics backend
-    // This is a placeholder
-    return events.map(event => ({
-      success: true,
-      eventId: event.eventId,
-      timestamp: Date.now(),
-      processingTime: 10
-    }));
+    try {
+      const response = await fetch('/api/analytics/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Version': '2.0'
+        },
+        body: JSON.stringify({
+          events,
+          transport: this.config.endpoint,
+          timestamp: Date.now()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Transport failed: ${response.status}`);
+      }
+
+      const results = await response.json();
+      return results.events || events.map(event => ({
+        success: true,
+        eventId: event.eventId,
+        timestamp: Date.now(),
+        processingTime: response.headers.get('X-Processing-Time') || 10
+      }));
+    } catch (error) {
+      // Return failed results for retry handling
+      return events.map(event => ({
+        success: false,
+        eventId: event.eventId,
+        timestamp: Date.now(),
+        processingTime: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }));
+    }
   }
 
   async sendEvent(event: AnalyticsEvent): Promise<EventProcessingResult> {

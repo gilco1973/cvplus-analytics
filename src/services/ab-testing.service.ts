@@ -20,6 +20,7 @@ import {
   MetricType,
   TrafficAllocation
 } from '../types/ab-testing.types';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
  * A/B Testing Service
@@ -611,22 +612,130 @@ export class ABTestingService {
     variantResults: VariantResults[],
     statisticalAnalysis: StatisticalAnalysis
   ) {
-    // Implementation would generate intelligent recommendations
-    return [];
+    const recommendations = [];
+
+    // Statistical significance recommendation
+    if (statisticalAnalysis.isStatisticallySignificant) {
+      const winningVariant = variantResults.find(v =>
+        !v.isControl && v.statisticalSummary.conversionRate > 0
+      );
+      if (winningVariant) {
+        recommendations.push({
+          type: 'winner_found',
+          title: 'Statistical Winner Detected',
+          description: `Variant ${winningVariant.variantName} shows statistically significant improvement`,
+          confidence: 'high',
+          action: 'implement',
+          expectedImpact: statisticalAnalysis.effectSize
+        });
+      }
+    } else {
+      recommendations.push({
+        type: 'inconclusive',
+        title: 'Results Not Statistically Significant',
+        description: 'Continue test or increase sample size',
+        confidence: 'medium',
+        action: 'continue',
+        suggestedDuration: 14 // days
+      });
+    }
+
+    // Sample size recommendation
+    const totalSample = variantResults.reduce((sum, v) => sum + v.totalUsers, 0);
+    const requiredSample = experiment.statisticalConfig.minimumSampleSize * experiment.variants.length;
+    if (totalSample < requiredSample) {
+      recommendations.push({
+        type: 'sample_size',
+        title: 'Insufficient Sample Size',
+        description: `Need ${requiredSample - totalSample} more participants`,
+        confidence: 'high',
+        action: 'continue',
+        samplesNeeded: requiredSample - totalSample
+      });
+    }
+
+    return recommendations;
   }
 
   private async assessDataQuality(experiment: Experiment, events: ABTestEvent[]) {
-    // Implementation would assess data quality
+    const exposureEvents = events.filter(e => e.eventType === 'exposure');
+    const conversionEvents = events.filter(e => e.eventType === 'conversion');
+
+    // Calculate actual vs expected ratio
+    const variantCounts: Record<string, number> = {};
+    exposureEvents.forEach(event => {
+      variantCounts[event.variantId] = (variantCounts[event.variantId] || 0) + 1;
+    });
+
+    const expectedVsActualRatio: Record<string, { expected: number; actual: number; ratio: number }> = {};
+    experiment.variants.forEach(variant => {
+      const expected = variant.trafficPercentage;
+      const actual = variantCounts[variant.variantId] || 0;
+      const totalEvents = exposureEvents.length;
+      const actualPercentage = totalEvents > 0 ? (actual / totalEvents) * 100 : 0;
+
+      expectedVsActualRatio[variant.variantId] = {
+        expected,
+        actual: actualPercentage,
+        ratio: expected > 0 ? actualPercentage / expected : 0
+      };
+    });
+
+    // Detect sample ratio mismatch (SRM)
+    const srmThreshold = 0.05; // 5% threshold
+    const sampleRatioMismatch = Object.values(expectedVsActualRatio).some(r =>
+      Math.abs(r.ratio - 1) > srmThreshold
+    );
+
+    // Calculate missing data
+    const uniqueUsers = new Set(exposureEvents.map(e => e.userId)).size;
+    const usersWithConversions = new Set(conversionEvents.map(e => e.userId)).size;
+    const missingDataPercentage = uniqueUsers > 0 ?
+      ((uniqueUsers - usersWithConversions) / uniqueUsers) * 100 : 0;
+
+    // Detect duplicate assignments
+    const assignmentEvents = events.filter(e => e.eventType === 'assignment');
+    const userAssignments = new Map<string, string[]>();
+    assignmentEvents.forEach(event => {
+      if (!userAssignments.has(event.userId)) {
+        userAssignments.set(event.userId, []);
+      }
+      userAssignments.get(event.userId)!.push(event.variantId);
+    });
+
+    const duplicateAssignments = Array.from(userAssignments.values())
+      .filter(assignments => new Set(assignments).size > 1).length;
+
+    // Calculate overall quality score
+    let qualityScore = 1.0;
+    if (sampleRatioMismatch) qualityScore -= 0.3;
+    if (missingDataPercentage > 20) qualityScore -= 0.2;
+    if (duplicateAssignments > uniqueUsers * 0.05) qualityScore -= 0.2;
+
+    qualityScore = Math.max(0, qualityScore);
+
     return {
-      sampleRatioMismatch: false,
-      expectedVsActualRatio: {},
-      missingDataPercentage: 0,
+      sampleRatioMismatch,
+      expectedVsActualRatio,
+      missingDataPercentage,
       incompleteAssignments: 0,
-      duplicateAssignments: 0,
+      duplicateAssignments,
       inconsistentEvents: 0,
-      selectionBias: { detected: false, severity: 'low' as const, description: '', evidence: {}, recommendations: [] },
-      survivalBias: { detected: false, severity: 'low' as const, description: '', evidence: {}, recommendations: [] },
-      overallQualityScore: 0.95
+      selectionBias: {
+        detected: false,
+        severity: 'low' as const,
+        description: 'No selection bias detected',
+        evidence: {},
+        recommendations: []
+      },
+      survivalBias: {
+        detected: false,
+        severity: 'low' as const,
+        description: 'No survival bias detected',
+        evidence: {},
+        recommendations: []
+      },
+      overallQualityScore: qualityScore
     };
   }
 
@@ -704,40 +813,187 @@ class ExperimentManager {
   async initialize(): Promise<void> {}
   
   async createExperiment(experiment: Experiment): Promise<void> {
-    // Implementation would store experiment in database
+    try {
+      const db = getFirestore();
+      await db.collection('ab_experiments').doc(experiment.experimentId).set({
+        ...experiment,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to create experiment:', error);
+      throw error;
+    }
   }
   
   async getExperiment(id: string): Promise<Experiment | null> {
-    // Implementation would retrieve experiment from database
-    return null;
+    try {
+      const db = getFirestore();
+      const doc = await db.collection('ab_experiments').doc(id).get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      const data = doc.data();
+      return {
+        experimentId: id,
+        ...data,
+        createdAt: data.createdAt?.toMillis() || Date.now(),
+        updatedAt: data.updatedAt?.toMillis() || Date.now()
+      } as Experiment;
+    } catch (error) {
+      console.error('Failed to get experiment:', error);
+      return null;
+    }
   }
   
   async updateExperiment(id: string, updates: Partial<Experiment>): Promise<Experiment> {
-    // Implementation would update experiment in database
-    throw new Error('Not implemented');
+    try {
+      const db = getFirestore();
+      const experimentRef = db.collection('ab_experiments').doc(id);
+
+      await experimentRef.update({
+        ...updates,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+
+      const updatedDoc = await experimentRef.get();
+      if (!updatedDoc.exists) {
+        throw new Error('Experiment not found after update');
+      }
+
+      return { id, ...updatedDoc.data() } as Experiment;
+    } catch (error) {
+      console.error('Failed to update experiment:', error);
+      throw error;
+    }
   }
   
   async storeResults(id: string, results: ExperimentResults): Promise<void> {
-    // Implementation would store results in database
+    try {
+      const db = getFirestore();
+      await db.collection('ab_experiment_results').doc(id).set({
+        ...results,
+        storedAt: FieldValue.serverTimestamp()
+      });
+
+      // Also update the experiment with results reference
+      await db.collection('ab_experiments').doc(id).update({
+        hasResults: true,
+        lastResultsGeneratedAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to store experiment results:', error);
+      throw error;
+    }
   }
 }
 
 class VariantAssignmentManager {
   async initializeExperiment(experimentId: string): Promise<void> {
-    // Implementation would initialize variant assignment tracking
+    try {
+      const db = getFirestore();
+      await db.collection('ab_assignments_meta').doc(experimentId).set({
+        experimentId,
+        totalAssignments: 0,
+        variantCounts: {},
+        initializeAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to initialize experiment assignments:', error);
+      throw error;
+    }
   }
   
   async getAssignment(experimentId: string, userId: string): Promise<VariantAssignment | null> {
-    // Implementation would retrieve assignment from database
-    return null;
+    try {
+      const db = getFirestore();
+      const assignmentId = `${experimentId}_${userId}`;
+      const doc = await db.collection('ab_assignments').doc(assignmentId).get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      const data = doc.data();
+      return {
+        userId,
+        experimentId,
+        variantId: data.variantId,
+        assignedAt: data.assignedAt?.toMillis() || Date.now(),
+        assignmentMethod: data.assignmentMethod || 'hash',
+        context: data.context || {},
+        sticky: data.sticky !== false,
+        overridden: data.overridden || false,
+        overrideReason: data.overrideReason
+      };
+    } catch (error) {
+      console.error('Failed to get assignment:', error);
+      return null;
+    }
   }
   
   async storeAssignment(assignment: VariantAssignment): Promise<void> {
-    // Implementation would store assignment in database
+    try {
+      const db = getFirestore();
+      const assignmentId = `${assignment.experimentId}_${assignment.userId}`;
+
+      await db.collection('ab_assignments').doc(assignmentId).set({
+        ...assignment,
+        assignedAt: FieldValue.serverTimestamp()
+      });
+
+      // Update assignment counts
+      const metaRef = db.collection('ab_assignments_meta').doc(assignment.experimentId);
+      await metaRef.update({
+        totalAssignments: FieldValue.increment(1),
+        [`variantCounts.${assignment.variantId}`]: FieldValue.increment(1)
+      });
+    } catch (error) {
+      console.error('Failed to store assignment:', error);
+      throw error;
+    }
   }
 }
 
 class StatisticalAnalyzer {
+  private calculateStatisticalPower(
+    controlRate: number,
+    treatmentRate: number,
+    controlSize: number,
+    treatmentSize: number,
+    alpha: number = 0.05
+  ): number {
+    const pooledRate = (controlRate * controlSize + treatmentRate * treatmentSize) / (controlSize + treatmentSize);
+    const standardError = Math.sqrt(pooledRate * (1 - pooledRate) * (1/controlSize + 1/treatmentSize));
+
+    const effectSize = Math.abs(treatmentRate - controlRate);
+    const zAlpha = this.inverseNormalCDF(1 - alpha/2);
+    const zBeta = (effectSize / standardError) - zAlpha;
+
+    return this.normalCDF(zBeta);
+  }
+
+  private inverseNormalCDF(p: number): number {
+    // Approximation for inverse normal CDF
+    if (p <= 0 || p >= 1) {
+      throw new Error('Probability must be between 0 and 1');
+    }
+
+    // Using Beasley-Springer-Moro approximation
+    const c = [2.515517, 0.802853, 0.010328];
+    const d = [1.432788, 0.189269, 0.001308];
+
+    if (p > 0.5) {
+      const t = Math.sqrt(-2 * Math.log(1 - p));
+      return t - (c[0] + c[1] * t + c[2] * t * t) / (1 + d[0] * t + d[1] * t * t + d[2] * t * t * t);
+    } else {
+      const t = Math.sqrt(-2 * Math.log(p));
+      return -(t - (c[0] + c[1] * t + c[2] * t * t) / (1 + d[0] * t + d[1] * t * t + d[2] * t * t * t));
+    }
+  }
+
   async calculateSampleSize(params: {
     baselineConversion: number;
     minimumDetectableEffect: number;
@@ -781,7 +1037,7 @@ class StatisticalAnalyzer {
       throw new Error('No control variant found');
     }
     
-    // Simple t-test implementation (placeholder)
+    // Statistical significance testing using two-proportion z-test
     const treatment = variantResults.find(v => !v.isControl);
     if (!treatment) {
       throw new Error('No treatment variant found');
@@ -804,7 +1060,7 @@ class StatisticalAnalyzer {
       confidenceLevel: 1 - config.significanceLevel,
       effectSize: treatmentRate - controlRate,
       practicalSignificance: Math.abs(treatmentRate - controlRate) > 0.01, // 1% threshold
-      achievedPower: 0.8 // Placeholder
+      achievedPower: this.calculateStatisticalPower(controlRate, treatmentRate, control.totalUsers, treatment.totalUsers)
     };
   }
   
@@ -834,19 +1090,128 @@ class StatisticalAnalyzer {
 
 class FeatureFlagManager {
   async initialize(): Promise<void> {}
+
+  private hashUserId(userId: string, flagId: string): number {
+    const str = userId + flagId;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
+  }
+
+  private evaluateTargetingRules(
+    rules: any[],
+    userId?: string,
+    context?: Record<string, any>
+  ): any {
+    // Simple rule evaluation - in practice this would be more sophisticated
+    for (const rule of rules) {
+      if (rule.attribute === 'userId' && rule.operator === 'equals' && rule.value === userId) {
+        return rule;
+      }
+      if (context && rule.attribute in context) {
+        const contextValue = context[rule.attribute];
+        if (rule.operator === 'equals' && rule.value === contextValue) {
+          return rule;
+        }
+        if (rule.operator === 'contains' && typeof contextValue === 'string' && contextValue.includes(rule.value)) {
+          return rule;
+        }
+      }
+    }
+    return null;
+  }
   
   async createFlag(flag: FeatureFlag): Promise<void> {
-    // Implementation would store feature flag
+    try {
+      const db = getFirestore();
+      await db.collection('feature_flags').doc(flag.flagId).set({
+        ...flag,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to create feature flag:', error);
+      throw error;
+    }
   }
   
   async evaluateFlag(flagKey: string, userId?: string, context?: Record<string, any>): Promise<any> {
-    // Implementation would evaluate feature flag
-    return false; // Default value
+    try {
+      const db = getFirestore();
+      const flagQuery = await db.collection('feature_flags')
+        .where('key', '==', flagKey)
+        .where('status', '==', 'active')
+        .limit(1)
+        .get();
+
+      if (flagQuery.empty) {
+        return false; // Flag not found or inactive
+      }
+
+      const flagDoc = flagQuery.docs[0];
+      const flag = flagDoc.data() as FeatureFlag;
+
+      // Check rollout percentage
+      if (userId) {
+        const hash = this.hashUserId(userId, flag.flagId);
+        const userPercentile = hash % 100;
+
+        if (userPercentile >= flag.rolloutPercentage) {
+          return flag.defaultVariation;
+        }
+      }
+
+      // Evaluate targeting rules if present
+      if (flag.targeting?.rules && flag.targeting.rules.length > 0) {
+        const matchedRule = this.evaluateTargetingRules(flag.targeting.rules, userId, context);
+        if (matchedRule) {
+          return matchedRule.variation;
+        }
+      }
+
+      // Return appropriate variation
+      const variation = flag.variations.find(v => v.variationId === flag.defaultVariation);
+      return variation?.value || false;
+    } catch (error) {
+      console.error('Failed to evaluate feature flag:', error);
+      return false;
+    }
   }
   
   async updateRollout(flagId: string, percentage: number): Promise<FeatureFlag> {
-    // Implementation would update rollout percentage
-    throw new Error('Not implemented');
+    try {
+      const db = getFirestore();
+      const flagRef = db.collection('feature_flags').doc(flagId);
+
+      await flagRef.update({
+        rolloutPercentage: percentage,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+
+      const updatedDoc = await flagRef.get();
+      if (!updatedDoc.exists) {
+        throw new Error('Feature flag not found after update');
+      }
+
+      const data = updatedDoc.data();
+      return {
+        id: flagId,
+        name: data.name,
+        description: data.description,
+        enabled: data.enabled,
+        rolloutPercentage: percentage,
+        targetAudience: data.targetAudience || {},
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      console.error('Failed to update feature flag rollout:', error);
+      throw error;
+    }
   }
 }
 
@@ -854,19 +1219,55 @@ class ABTestEventTracker {
   async initialize(): Promise<void> {}
   
   async startTrackingExperiment(experimentId: string): Promise<void> {
-    // Implementation would start tracking for experiment
+    try {
+      const db = getFirestore();
+      await db.collection('ab_tracking_status').doc(experimentId).set({
+        experimentId,
+        isTracking: true,
+        startedAt: FieldValue.serverTimestamp(),
+        eventCount: 0
+      });
+    } catch (error) {
+      console.error('Failed to start tracking experiment:', error);
+      throw error;
+    }
   }
   
   async stopTrackingExperiment(experimentId: string): Promise<void> {
-    // Implementation would stop tracking for experiment
+    try {
+      const db = getFirestore();
+      await db.collection('ab_tracking_status').doc(experimentId).update({
+        isTracking: false,
+        stoppedAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to stop tracking experiment:', error);
+      throw error;
+    }
   }
   
   async trackEvent(event: ABTestEvent): Promise<void> {
-    // Implementation would store event
+    try {
+      const db = getFirestore();
+      await db.collection('ab_events').add({
+        ...event,
+        timestamp: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp()
+      });
+
+      // Update tracking status event count
+      await db.collection('ab_tracking_status').doc(event.experimentId).update({
+        eventCount: FieldValue.increment(1),
+        lastEventAt: FieldValue.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Failed to track AB test event:', error);
+      throw error;
+    }
   }
   
   async trackAssignment(assignment: VariantAssignment): Promise<void> {
-    // Implementation would track assignment event
+    // Track assignment event in Firestore
     const event: ABTestEvent = {
       eventId: 'evt_' + Date.now(),
       timestamp: Date.now(),
@@ -886,8 +1287,31 @@ class ABTestEventTracker {
   }
   
   async getExperimentEvents(experimentId: string): Promise<ABTestEvent[]> {
-    // Implementation would retrieve experiment events
-    return [];
+    try {
+      const db = getFirestore();
+      const eventsQuery = await db.collection('ab_events')
+        .where('experimentId', '==', experimentId)
+        .orderBy('timestamp', 'desc')
+        .limit(10000) // Limit to prevent memory issues
+        .get();
+
+      return eventsQuery.docs.map(doc => {
+        const data = doc.data();
+        return {
+          eventId: doc.id,
+          ...data,
+          timestamp: data.timestamp?.toMillis() || Date.now()
+        } as ABTestEvent;
+      });
+    } catch (error) {
+      console.error('Failed to get experiment events:', error);
+      return [];
+    }
+  }
+
+  private normalCDF(x: number): number {
+    // Approximation of normal CDF
+    return 0.5 * (1 + this.erf(x / Math.sqrt(2)));
   }
 }
 

@@ -183,11 +183,13 @@ export * from './cohort.types';
 export * from './user-outcomes';
 
 // Migrated from Core Module
-export * from './analytics';
+// Note: './analytics' conflicts with './analytics.types' - use specific imports if needed
+// export * from './analytics';
 export * from './enhanced-analytics';
 
 // Core Analytics Types (migrated from cv-processing)
-export * from './core-analytics';
+// Temporarily commented to resolve AnalyticsEvent conflict
+// export * from './core-analytics';
 
 // =============================================================================
 // VERSION
@@ -195,11 +197,11 @@ export * from './core-analytics';
 export const ANALYTICS_TYPES_VERSION = '1.0.0';
 
 // Migrated analytics types from core module
-export * from './user-outcomes';
 export * from './ml-pipeline';
 export * from './success-prediction';
 export * from './analytics-errors';
 
-export * from './api';
-export * from './booking.types';
-export * from './payment.types';
+// API, booking, and payment types moved to respective modules
+// export * from './api';
+// export * from './booking.types';
+// export * from './payment.types';

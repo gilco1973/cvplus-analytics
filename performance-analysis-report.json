@@ -1,0 +1,216 @@
+{
+  "timestamp": "2025-09-17T14:50:52.081Z",
+  "performanceScore": 20,
+  "grade": "F",
+  "analysis": {
+    "fileAnalysis": {
+      "src/index.ts": {
+        "lines": 349,
+        "sizeKB": 10,
+        "importsCount": 1,
+        "exportsCount": 36,
+        "performanceImpact": {
+          "impact": "MEDIUM",
+          "score": 20
+        },
+        "recommendations": [
+          {
+            "type": "FILE_SPLITTING",
+            "priority": "HIGH",
+            "description": "File has 349 lines. Split into smaller modules (<200 lines each)",
+            "estimatedImprovement": "40-60% loading time reduction"
+          }
+        ]
+      },
+      "src/functions/ml/predictChurn.ts": {
+        "lines": 353,
+        "sizeKB": 11,
+        "importsCount": 5,
+        "exportsCount": 1,
+        "performanceImpact": {
+          "impact": "MEDIUM",
+          "score": 20
+        },
+        "recommendations": [
+          {
+            "type": "FILE_SPLITTING",
+            "priority": "HIGH",
+            "description": "File has 353 lines. Split into smaller modules (<200 lines each)",
+            "estimatedImprovement": "40-60% loading time reduction"
+          }
+        ]
+      },
+      "src/services/business-intelligence.service.ts": {
+        "lines": 738,
+        "sizeKB": 22,
+        "importsCount": 0,
+        "exportsCount": 2,
+        "performanceImpact": {
+          "impact": "HIGH",
+          "score": 40
+        },
+        "recommendations": [
+          {
+            "type": "FILE_SPLITTING",
+            "priority": "HIGH",
+            "description": "File has 738 lines. Split into smaller modules (<200 lines each)",
+            "estimatedImprovement": "40-60% loading time reduction"
+          }
+        ]
+      }
+    },
+    "bundleAnalysis": {
+      "estimatedBundleSize": {
+        "coreLibraries": 850,
+        "applicationCode": 300,
+        "total": 1150,
+        "impact": "HIGH"
+      },
+      "dependencies": {
+        "production": 9,
+        "development": 16,
+        "heavy": [
+          "firebase",
+          "firebase-admin",
+          "firebase-functions",
+          "ioredis",
+          "stripe"
+        ]
+      },
+      "optimizations": [
+        {
+          "type": "TREE_SHAKING",
+          "priority": "HIGH",
+          "description": "Large dependencies detected - implement tree shaking",
+          "estimatedReduction": "30-50% bundle size"
+        }
+      ]
+    },
+    "memoryAnalysis": {
+      "estimatedUsage": {
+        "businessIntelligence": {
+          "fileSize": 22,
+          "classInstances": 10,
+          "cacheReferences": 3,
+          "arrayOperations": 0,
+          "estimatedMemoryUsage": "54KB runtime"
+        }
+      },
+      "memoryLeaks": [],
+      "optimizations": []
+    },
+    "cacheAnalysis": {
+      "mockServices": [
+        {
+          "file": "src/services/analytics-cache.service.ts",
+          "mockCacheMethods": 1,
+          "mockServices": 0,
+          "impact": "CRITICAL"
+        },
+        {
+          "file": "src/services/cache-performance-monitor.service.ts",
+          "mockCacheMethods": 0,
+          "mockServices": 2,
+          "impact": "CRITICAL"
+        }
+      ],
+      "performanceImpact": {
+        "queryReExecution": {
+          "impact": "CRITICAL",
+          "description": "All cached queries re-execute on every request",
+          "estimatedSlowdown": "500-1000%",
+          "affectedOperations": [
+            "Analytics queries",
+            "ML predictions",
+            "Revenue calculations"
+          ]
+        },
+        "databaseLoad": {
+          "impact": "HIGH",
+          "description": "Database receives 10x normal query load",
+          "estimatedCost": "$500-2000/month additional costs"
+        },
+        "responseTime": {
+          "impact": "HIGH",
+          "description": "API response times increase dramatically",
+          "estimatedIncrease": "2-10 seconds per request"
+        }
+      },
+      "estimatedCosts": {}
+    },
+    "mlAnalysis": {
+      "configuration": {
+        "memory": "2GiB",
+        "timeout": 540,
+        "maxInstances": 5
+      },
+      "bottlenecks": [
+        {
+          "type": "BATCH_PROCESSING",
+          "severity": "HIGH",
+          "description": "Batch analysis processes all users sequentially",
+          "estimatedImpact": "5-15 minutes execution time"
+        }
+      ],
+      "optimizations": [
+        {
+          "type": "MEMORY_OPTIMIZATION",
+          "priority": "MEDIUM",
+          "description": "High memory allocation may cause cold starts",
+          "recommendation": "Implement streaming processing for large datasets"
+        },
+        {
+          "type": "TIMEOUT_OPTIMIZATION",
+          "priority": "HIGH",
+          "description": "540s timeout indicates performance issues",
+          "recommendation": "Optimize algorithms and implement result caching"
+        }
+      ]
+    },
+    "overall": {
+      "performanceScore": 20,
+      "grade": "F",
+      "criticalIssues": [
+        "Mock cache services causing 5-10x performance degradation"
+      ],
+      "issues": [
+        "Large file detected: 22KB",
+        "Long ML function timeout: 540s",
+        "Large bundle size: ~1150KB"
+      ],
+      "estimatedImprovementPotential": [
+        {
+          "optimization": "Replace mock cache with Redis implementation",
+          "estimatedImprovement": "70-90% response time reduction",
+          "implementationEffort": "Medium (1-2 days)",
+          "priority": "CRITICAL"
+        },
+        {
+          "optimization": "Implement tree shaking and code splitting",
+          "estimatedImprovement": "30-50% bundle size reduction",
+          "implementationEffort": "Medium (2-3 days)",
+          "priority": "MEDIUM"
+        }
+      ]
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      {
+        "action": "Replace mock cache services with Redis implementation",
+        "impact": "CRITICAL",
+        "estimatedTimeReduction": "70-90%",
+        "implementationTime": "1-2 days"
+      }
+    ],
+    "shortTerm": [],
+    "longTerm": [
+      {
+        "action": "Implement comprehensive bundle optimization",
+        "impact": "MEDIUM",
+        "estimatedImprovement": "30-50% bundle size reduction",
+        "implementationTime": "1-2 weeks"
+      }
+    ]
+  }
+}

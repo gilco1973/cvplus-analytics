@@ -9,13 +9,69 @@
 
 import OpenAI from 'openai';
 import { admin, db } from '@cvplus/core';
-import { config } from '../config/environment';
-import { ParsedCV } from '../types/enhanced-models';
-import { RAGEmbedding, EmbeddingMetadata, ContentType } from '../types/rag-search.types';
-import { CVSection } from '../types';
 import { logger } from '@cvplus/core';
-import { ChunkingUtils, ChunkResult } from '@cvplus/processing/cv-generator/chunking/ChunkingUtils';
-import { EmbeddingHelpers } from '@cvplus/processing/cv-generator/embedding/EmbeddingHelpers';
+import { getEnvironmentConfig } from '../../config/environment';
+
+// Import types from their proper modules once they're available
+interface ParsedCV {
+  id: string;
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+interface RAGEmbedding {
+  id: string;
+  vector: number[];
+  content: string;
+  metadata: EmbeddingMetadata;
+}
+
+interface EmbeddingMetadata {
+  type: ContentType;
+  source: string;
+  timestamp: Date;
+  [key: string]: any;
+}
+
+type ContentType = 'cv_section' | 'job_description' | 'skill' | 'experience';
+
+interface CVSection {
+  id: string;
+  type: string;
+  content: string;
+}
+
+interface ChunkResult {
+  chunks: string[];
+  metadata: Record<string, any>;
+}
+
+// Configuration - should be imported from proper config module
+const config = {
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || getEnvironmentConfig()?.openai?.apiKey
+  }
+};
+
+// Utilities - should be imported from @cvplus/processing once available
+const ChunkingUtils = {
+  chunkContent: (content: string): ChunkResult => {
+    // Basic chunking implementation - replace with proper implementation from @cvplus/processing
+    const chunks = content.match(/.{1,1000}/g) || [];
+    return { chunks, metadata: {} };
+  }
+};
+
+const EmbeddingHelpers = {
+  extractMetadata: (content: string): EmbeddingMetadata => {
+    // Basic metadata extraction - replace with proper implementation from @cvplus/processing
+    return {
+      type: 'cv_section' as ContentType,
+      source: 'unknown',
+      timestamp: new Date()
+    };
+  }
+};
 import { vectorDatabase, VectorInput, SearchOptions } from './vector-database.service';
 
 /**

@@ -1,15 +1,92 @@
-// @ts-ignore - Export conflictsimport { onRequest } from 'firebase-functions/v2/https';
+import { onRequest } from 'firebase-functions/v2/https';
 import { Request, Response } from 'firebase-functions';
+import { requireAuth, getUserRoles, getUserDisplayInfo } from '@cvplus/auth';
+import { admin } from '@cvplus/core';
+import { Timestamp } from 'firebase-admin/firestore';
 import {
   getAnalyticsEvent,
+  getAnalyticsAggregates,
+  getAnalyticsEvents,
   queryAnalyticsEvents,
   trackEvent
 } from '../../../models/analytics.service';
-// Temporarily commented out external package imports to resolve compilation
-// import { getUserProfile } from '@cvplus/auth';
-// import { getPublicProfile } from '@cvplus/public-profiles';
-// import { getCVJob } from '@cvplus/processing';
-import { requireAuth } from '@cvplus/auth';
+
+// Implement getUserProfile using Firebase Admin and auth utilities
+const getUserProfile = async (uid: string) => {
+  try {
+    const userRecord = await admin.auth().getUser(uid);
+    const userRoles = await getUserRoles(uid);
+    const displayInfo = getUserDisplayInfo(userRecord.customClaims || {} as any);
+
+    // Determine subscription tier based on roles
+    let subscriptionTier = 'free';
+    if (userRoles.includes('enterprise')) {
+      subscriptionTier = 'enterprise';
+    } else if (userRoles.includes('premium')) {
+      subscriptionTier = 'premium';
+    }
+
+    return {
+      id: uid,
+      email: userRecord.email || '',
+      name: userRecord.displayName || displayInfo.name || 'User',
+      subscriptionTier,
+      roles: userRoles,
+      emailVerified: userRecord.emailVerified,
+      photoURL: userRecord.photoURL || displayInfo.picture,
+      createdAt: userRecord.metadata.creationTime,
+      lastSignInTime: userRecord.metadata.lastSignInTime
+    };
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+};
+
+// Implement getPublicProfile - this would typically come from @cvplus/public-profiles
+const getPublicProfile = async (profileId: string) => {
+  try {
+    // For now, implement basic profile fetching from Firestore
+    const db = admin.firestore();
+    const profileDoc = await db.collection('publicProfiles').doc(profileId).get();
+
+    if (!profileDoc.exists) {
+      return null;
+    }
+
+    const profileData = profileDoc.data();
+    return {
+      id: profileId,
+      userId: profileData?.userId,
+      title: profileData?.title || 'Profile',
+      displayName: profileData?.displayName,
+      bio: profileData?.bio,
+      isPublic: profileData?.isPublic || false,
+      skills: profileData?.skills || [],
+      experience: profileData?.experience || [],
+      createdAt: profileData?.createdAt,
+      updatedAt: profileData?.updatedAt
+    };
+  } catch (error) {
+    console.error('Error getting public profile:', error);
+    return null;
+  }
+};
+
+import { hasAnyRole } from '@cvplus/auth';
+
+// Implement isAdmin using auth utilities
+const isAdmin = async (auth: any) => {
+  try {
+    if (!auth?.uid) return false;
+    const userRoles = await getUserRoles(auth.uid);
+    return hasAnyRole({ customClaims: { roles: userRoles } }, ['admin', 'super_admin']);
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+};
+
 import { EntityType, AggregationPeriod } from '../../../types/analytics.types';
 
 interface AnalyticsRequest {
@@ -76,12 +153,7 @@ export const getAnalytics = onRequest(
     timeoutSeconds: 60,
     memory: '512MiB',
     maxInstances: 100,
-    cors: {
-      origin: true,
-      methods: ['GET', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-      credentials: true
-    }
+    cors: true
   },
   async (req: Request, res: Response) => {
     try {
@@ -142,7 +214,7 @@ export const getAnalytics = onRequest(
 
       // Parse query parameters
       const requestParams: AnalyticsRequest = {
-        period: (req.query.period as AggregationPeriod) || AggregationPeriod.LAST_30_DAYS,
+        period: (req.query.period as AggregationPeriod) || 'month',
         startDate: req.query.start_date as string,
         endDate: req.query.end_date as string,
         eventTypes: req.query.event_types ? (req.query.event_types as string).split(',') : undefined,
@@ -165,6 +237,13 @@ export const getAnalytics = onRequest(
 
       // Check if user has analytics access
       const userProfile = await getUserProfile(userId);
+      if (!userProfile) {
+        res.status(404).json({
+          success: false,
+          message: 'User profile not found'
+        } as AnalyticsResponse);
+        return;
+      }
       const hasAnalyticsAccess = checkAnalyticsAccess(userProfile.subscriptionTier, entityType);
 
       if (!hasAnalyticsAccess) {
@@ -190,7 +269,7 @@ export const getAnalytics = onRequest(
       }
 
       // Set appropriate cache headers
-      const cacheMaxAge = getCacheMaxAge(requestParams.period);
+      const cacheMaxAge = getCacheMaxAge(requestParams.period || 'month');
       res.set({
         'Cache-Control': `private, max-age=${cacheMaxAge}`,
         'X-Analytics-Period': requestParams.period,
@@ -262,14 +341,14 @@ async function verifyEntityOwnership(
  * Check if user has analytics access for entity type
 */
 function checkAnalyticsAccess(tier: string, entityType: EntityType): boolean {
-  const accessLevels = {
+  const accessLevels: Record<string, EntityType[]> = {
     free: [],
     basic: ['public_profile'],
     premium: ['user_profile', 'processed_cv', 'generated_content', 'public_profile'],
     enterprise: ['user_profile', 'processed_cv', 'generated_content', 'public_profile']
   };
 
-  const allowedTypes = accessLevels[tier as keyof typeof accessLevels] || [];
+  const allowedTypes = accessLevels[tier] || [];
   return allowedTypes.includes(entityType);
 }
 
@@ -285,12 +364,15 @@ async function fetchAnalyticsData(
   const data: any = {};
 
   // Get aggregated data
+  const startDate = params.startDate ? (typeof params.startDate === 'string' ? Timestamp.fromDate(new Date(params.startDate)) : params.startDate) : undefined;
+  const endDate = params.endDate ? (typeof params.endDate === 'string' ? Timestamp.fromDate(new Date(params.endDate)) : params.endDate) : undefined;
+
   const aggregates = await getAnalyticsAggregates(
     entityType,
     entityId,
-    params.period!,
-    params.startDate,
-    params.endDate
+    params.period || 'month',
+    startDate,
+    endDate
   );
 
   if (aggregates.length > 0) {
@@ -299,7 +381,8 @@ async function fetchAnalyticsData(
 
     // Group by event type
     const eventTypeCounts = aggregates.reduce((acc, agg) => {
-      acc[agg.eventType] = (acc[agg.eventType] || 0) + agg.eventCount;
+      const eventType = agg.eventType || 'unknown';
+      acc[eventType] = (acc[eventType] || 0) + agg.eventCount;
       return acc;
     }, {} as Record<string, number>);
 
@@ -328,9 +411,9 @@ async function fetchAnalyticsData(
     const events = await getAnalyticsEvents(
       entityType,
       entityId,
-      params.startDate,
-      params.endDate,
-      params.eventTypes,
+      startDate,
+      endDate,
+      params.eventTypes as any, // Type conversion for compatibility
       params.limit || 100
     );
 
@@ -376,7 +459,7 @@ function generateTimeBreakdown(aggregates: any[], groupBy: 'day' | 'week' | 'mon
     return acc;
   }, {} as Record<string, any>);
 
-  return Object.entries(breakdown).map(([period, data]) => ({
+  return Object.entries(breakdown).map(([period, data]: [string, any]) => ({
     [groupBy === 'day' ? 'date' : groupBy === 'week' ? 'week' : 'month']: period,
     events: data.events,
     uniqueUsers: data.uniqueUsers.size
@@ -432,7 +515,7 @@ function calculatePerformanceScore(entityType: EntityType, data: any): number {
 
     case 'processed_cv':
       // Score based on views and downloads
-      const downloadEvents = topEvents.find(e => e.eventType === 'cv_downloaded');
+      const downloadEvents = topEvents.find((e: any) => e.eventType === 'cv_downloaded');
       if (downloadEvents && downloadEvents.count > 5) score += 25;
 
       if (totalEvents > 50) score += 15;
@@ -473,13 +556,13 @@ function generateRecommendations(entityType: EntityType, data: any, trends: any)
   // Entity-specific recommendations
   switch (entityType) {
     case 'public_profile':
-      if (!topEvents.some(e => e.eventType === 'profile_contacted')) {
+      if (!topEvents.some((e: any) => e.eventType === 'profile_contacted')) {
         recommendations.push('Add a clear call-to-action to encourage visitors to contact you');
       }
       break;
 
     case 'processed_cv':
-      if (!topEvents.some(e => e.eventType === 'cv_downloaded')) {
+      if (!topEvents.some((e: any) => e.eventType === 'cv_downloaded')) {
         recommendations.push('Consider improving your CV summary to increase download rates');
       }
       break;
@@ -493,14 +576,14 @@ function generateRecommendations(entityType: EntityType, data: any, trends: any)
 */
 function getCacheMaxAge(period: AggregationPeriod): number {
   const cacheSettings = {
-    [AggregationPeriod.LAST_24_HOURS]: 300, // 5 minutes
-    [AggregationPeriod.LAST_7_DAYS]: 900, // 15 minutes
-    [AggregationPeriod.LAST_30_DAYS]: 1800, // 30 minutes
-    [AggregationPeriod.LAST_90_DAYS]: 3600, // 1 hour
-    [AggregationPeriod.ALL_TIME]: 7200 // 2 hours
+    'hour': 300, // 5 minutes
+    'day': 900, // 15 minutes
+    'week': 1800, // 30 minutes
+    'month': 3600, // 1 hour
+    'year': 7200 // 2 hours
   };
 
-  return cacheSettings[period] || 900;
+  return cacheSettings[period as keyof typeof cacheSettings] || 900;
 }
 
 /**

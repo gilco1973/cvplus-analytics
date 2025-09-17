@@ -11,7 +11,7 @@
 */
 
 import { logger } from 'firebase-functions';
-import { cacheService } from './cache.service';
+import { cacheService } from '../../../services/cache/cache.service';
 import * as crypto from 'crypto';
 
 export interface AnalyticsQuery {

@@ -1,34 +1,138 @@
 /**
  * Analytics Cache Service for CVPlus Performance Optimization
- * 
+ *
  * High-performance caching for expensive analytics queries, reducing
  * dashboard load times from 180s to <200ms through intelligent caching
  * of aggregated results and query optimization.
- * 
+ *
  * @author Gil Klainert
  * @version 1.0.0
  * @created 2025-08-28
-*/
+ */
 
 import { logger } from 'firebase-functions';
-// TODO: Import from @cvplus/core after proper exports are set up
-// import { cacheService } from '@cvplus/core';
+import { getRedisConfig } from '@cvplus/core/config';
+import { CacheConfiguration } from '@cvplus/core/types';
+import Redis from 'ioredis';
 
-// Temporary mock cache service - TODO: Replace with proper import
-const cacheService = {
-  get: async (key: string) => null,
-  set: async (key: string, value: any, ttl?: number) => true,
-  del: async (key: string) => true,
-  flush: async () => true,
-  exists: async (key: string) => false,
-  healthCheck: async () => ({ healthy: true }),
-  getStats: () => ({
-    isHealthy: true,
-    hitRate: 0.8,
-    errorRate: 0.01,
-    redis: { responseTime: 50 }
-  })
-};
+// Real Redis cache service using @cvplus/core infrastructure
+class RedisCacheService {
+  private redis: Redis;
+  private hitCount = 0;
+  private missCount = 0;
+  private errorCount = 0;
+
+  constructor() {
+    const config = getRedisConfig();
+    this.redis = new Redis({
+      host: config.host,
+      port: config.port,
+      password: config.password,
+      db: config.db,
+      retryDelayOnFailover: config.retryDelayOnFailover,
+      maxRetriesPerRequest: config.maxRetriesPerRequest,
+      lazyConnect: config.lazyConnect,
+      keepAlive: config.keepAlive,
+      connectTimeout: config.connectTimeout,
+      commandTimeout: config.commandTimeout
+    });
+  }
+
+  async get(key: string): Promise<any> {
+    try {
+      const result = await this.redis.get(key);
+      if (result) {
+        this.hitCount++;
+        return JSON.parse(result);
+      }
+      this.missCount++;
+      return null;
+    } catch (error) {
+      this.errorCount++;
+      logger.error('Redis get error:', error);
+      return null;
+    }
+  }
+
+  async set(key: string, value: any, ttl = 3600): Promise<boolean> {
+    try {
+      const serialized = JSON.stringify(value);
+      await this.redis.setex(key, ttl, serialized);
+      return true;
+    } catch (error) {
+      this.errorCount++;
+      logger.error('Redis set error:', error);
+      return false;
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      await this.redis.del(key);
+      return true;
+    } catch (error) {
+      this.errorCount++;
+      logger.error('Redis del error:', error);
+      return false;
+    }
+  }
+
+  async flush(): Promise<boolean> {
+    try {
+      await this.redis.flushdb();
+      return true;
+    } catch (error) {
+      this.errorCount++;
+      logger.error('Redis flush error:', error);
+      return false;
+    }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    try {
+      const result = await this.redis.exists(key);
+      return result === 1;
+    } catch (error) {
+      this.errorCount++;
+      logger.error('Redis exists error:', error);
+      return false;
+    }
+  }
+
+  async healthCheck(): Promise<{ healthy: boolean; responseTime?: number; error?: string }> {
+    try {
+      const start = Date.now();
+      await this.redis.ping();
+      const responseTime = Date.now() - start;
+      return { healthy: true, responseTime };
+    } catch (error) {
+      return { healthy: false, error: (error as Error).message };
+    }
+  }
+
+  getStats() {
+    const total = this.hitCount + this.missCount;
+    const hitRate = total > 0 ? this.hitCount / total : 0;
+    const errorRate = total > 0 ? this.errorCount / total : 0;
+
+    return {
+      isHealthy: this.errorCount < 10,
+      hitRate,
+      errorRate,
+      redis: {
+        hits: this.hitCount,
+        misses: this.missCount,
+        errors: this.errorCount
+      }
+    };
+  }
+
+  async disconnect(): Promise<void> {
+    await this.redis.disconnect();
+  }
+}
+
+const cacheService = new RedisCacheService();
 import * as crypto from 'crypto';
 
 export interface AnalyticsQuery {
@@ -498,41 +602,202 @@ class AnalyticsCacheService {
 
   // Analytics data fetchers (simplified implementations)
   
-  private async getDashboardSummaryData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified dashboard summary
-    return {
-      totalUsers: 1250,
-      activeUsers: 892,
-      totalRevenue: 45750,
-      monthlyGrowth: 12.5,
-      conversionRate: 3.2,
-      churnRate: 2.1,
-      topFeatures: ['webPortal', 'aiChat', 'podcast']
-    };
+  private async getDashboardSummaryData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = getFirestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get total users count
+      const usersQuery = await db.collection('users').get();
+      const totalUsers = usersQuery.size;
+
+      // Get active users (last 30 days)
+      const activeUsersQuery = await db.collection('user_sessions')
+        .where('createdAt', '>=', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        .get();
+      const activeUsers = new Set(activeUsersQuery.docs.map(doc => doc.data().userId)).size;
+
+      // Get revenue data
+      const revenueQuery = await db.collection('revenue_events')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .get();
+      const totalRevenue = revenueQuery.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0);
+
+      // Calculate monthly growth (compare with previous period)
+      const previousPeriodStart = new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()));
+      const previousRevenueQuery = await db.collection('revenue_events')
+        .where('createdAt', '>=', previousPeriodStart)
+        .where('createdAt', '<', startDate)
+        .get();
+      const previousRevenue = previousRevenueQuery.docs.reduce((sum, doc) => sum + (doc.data().amount || 0), 0);
+      const monthlyGrowth = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
+      // Get conversion rate
+      const conversionsQuery = await db.collection('conversion_events')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .get();
+      const conversions = new Set(conversionsQuery.docs.map(doc => doc.data().userId)).size;
+      const conversionRate = activeUsers > 0 ? (conversions / activeUsers) * 100 : 0;
+
+      // Get churn predictions
+      const churnQuery = await db.collection('churn_predictions')
+        .where('createdAt', '>=', startDate)
+        .orderBy('churnProbability', 'desc')
+        .limit(100)
+        .get();
+      const averageChurnRisk = churnQuery.docs.length > 0
+        ? churnQuery.docs.reduce((sum, doc) => sum + (doc.data().churnProbability || 0), 0) / churnQuery.docs.length
+        : 0;
+      const churnRate = averageChurnRisk * 100;
+
+      // Get top features
+      const featureUsageQuery = await db.collection('feature_usage')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .get();
+      const featureUsage = featureUsageQuery.docs.reduce((acc, doc) => {
+        const feature = doc.data().feature;
+        acc[feature] = (acc[feature] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      const topFeatures = Object.entries(featureUsage)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3)
+        .map(([feature]) => feature);
+
+      return {
+        totalUsers,
+        activeUsers,
+        totalRevenue,
+        monthlyGrowth,
+        conversionRate,
+        churnRate,
+        topFeatures
+      };
+    } catch (error) {
+      console.error('Failed to get dashboard summary data:', error);
+      // Return basic fallback data in case of error
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        totalRevenue: 0,
+        monthlyGrowth: 0,
+        conversionRate: 0,
+        churnRate: 0,
+        topFeatures: []
+      };
+    }
   }
 
-  private async getRevenueMetricsData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified revenue metrics
-    return {
-      periods: [
-        { period: '2025-08', revenue: 15250, subscriptions: 125 },
-        { period: '2025-07', revenue: 13680, subscriptions: 118 },
-        { period: '2025-06', revenue: 12100, subscriptions: 110 }
-      ],
-      total: 45750,
-      growth: 12.5
-    };
+  private async getRevenueMetricsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = getFirestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000); // 3 months
+
+      // Get revenue data by month
+      const revenueQuery = await db.collection('revenue_events')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      // Group revenue by month
+      const monthlyRevenue = new Map<string, { revenue: number; subscriptions: number }>();
+
+      revenueQuery.docs.forEach(doc => {
+        const data = doc.data();
+        const date = data.createdAt.toDate();
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!monthlyRevenue.has(monthKey)) {
+          monthlyRevenue.set(monthKey, { revenue: 0, subscriptions: 0 });
+        }
+
+        const monthData = monthlyRevenue.get(monthKey)!;
+        monthData.revenue += data.amount || 0;
+        if (data.type === 'subscription') {
+          monthData.subscriptions += 1;
+        }
+      });
+
+      // Convert to array and sort by period
+      const periods = Array.from(monthlyRevenue.entries())
+        .map(([period, data]) => ({ period, ...data }))
+        .sort((a, b) => b.period.localeCompare(a.period))
+        .slice(0, 6); // Last 6 months
+
+      const total = periods.reduce((sum, period) => sum + period.revenue, 0);
+
+      // Calculate growth (current vs previous period)
+      const currentPeriod = periods[0]?.revenue || 0;
+      const previousPeriod = periods[1]?.revenue || 0;
+      const growth = previousPeriod > 0 ? ((currentPeriod - previousPeriod) / previousPeriod) * 100 : 0;
+
+      return {
+        periods,
+        total,
+        growth
+      };
+    } catch (error) {
+      console.error('Failed to get revenue metrics data:', error);
+      return {
+        periods: [],
+        total: 0,
+        growth: 0
+      };
+    }
   }
 
-  private async getFeatureUsageData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified feature usage
-    return {
-      features: [
-        { feature: 'webPortal', usage: 2340, users: 450 },
-        { feature: 'aiChat', usage: 1890, users: 380 },
-        { feature: 'podcast', usage: 1250, users: 290 }
-      ]
-    };
+  private async getFeatureUsageData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = getFirestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get feature usage data
+      const featureQuery = await db.collection('feature_usage')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .get();
+
+      // Aggregate feature usage
+      const featureStats = new Map<string, { usage: number; users: Set<string> }>();
+
+      featureQuery.docs.forEach(doc => {
+        const data = doc.data();
+        const feature = data.feature || 'unknown';
+        const userId = data.userId;
+
+        if (!featureStats.has(feature)) {
+          featureStats.set(feature, { usage: 0, users: new Set() });
+        }
+
+        const stats = featureStats.get(feature)!;
+        stats.usage += 1;
+        if (userId) {
+          stats.users.add(userId);
+        }
+      });
+
+      // Convert to array format
+      const features = Array.from(featureStats.entries())
+        .map(([feature, stats]) => ({
+          feature,
+          usage: stats.usage,
+          users: stats.users.size
+        }))
+        .sort((a, b) => b.usage - a.usage)
+        .slice(0, 20); // Top 20 features
+
+      return { features };
+    } catch (error) {
+      console.error('Failed to get feature usage data:', error);
+      return { features: [] };
+    }
   }
 
   private async getUserCohortsData(_query: AnalyticsQuery): Promise<any> {

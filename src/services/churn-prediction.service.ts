@@ -510,22 +510,78 @@ export class ChurnPredictionService {
     return Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  // Placeholder methods for data retrieval (would be implemented with actual data)
   private async getSubscriptionHistory(userId: string): Promise<any> {
+    const db = getFirestore();
+    const subscription = await db.collection('subscriptions')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get();
+
+    if (subscription.empty) {
+      return {
+        createdAt: new Date(),
+        downgradeCount: 0
+      };
+    }
+
+    const subData = subscription.docs[0].data();
+
+    // Count tier changes (downgrades)
+    const changes = await db.collection('subscription_changes')
+      .where('userId', '==', userId)
+      .where('type', '==', 'downgrade')
+      .get();
+
     return {
-      createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-      downgradeCount: 0
+      createdAt: subData.createdAt?.toDate() || new Date(),
+      downgradeCount: changes.size,
+      currentTier: subData.tier
     };
   }
 
   private async getPaymentHistory(userId: string): Promise<any> {
+    const db = getFirestore();
+
+    // Get last successful payment
+    const successfulPayments = await db.collection('payments')
+      .where('userId', '==', userId)
+      .where('status', '==', 'succeeded')
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get();
+
+    // Get failed payments in last 90 days
+    const failedPayments = await db.collection('payments')
+      .where('userId', '==', userId)
+      .where('status', '==', 'failed')
+      .where('createdAt', '>=', Timestamp.fromDate(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)))
+      .get();
+
     return {
-      lastPaymentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      failureCount: 0
+      lastPaymentDate: successfulPayments.empty
+        ? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+        : successfulPayments.docs[0].data().createdAt?.toDate(),
+      failureCount: failedPayments.size
     };
   }
 
   private async getUsageMetrics(userId: string): Promise<any> {
+    const db = getFirestore();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get login sessions in last 30 days
+    const sessions = await db.collection('user_sessions')
+      .where('userId', '==', userId)
+      .where('createdAt', '>=', Timestamp.fromDate(thirtyDaysAgo))
+      .get();
+
+    // Get feature usage in last 30 days
+    const featureUsage = await db.collection('feature_usage')
+      .where('userId', '==', userId)
+      .where('timestamp', '>=', Timestamp.fromDate(thirtyDaysAgo))
+      .get();
+
     return {
       dailyActiveRatio: 0.7,
       featureUsageDecline: 10,

@@ -390,7 +390,25 @@ async function cancelScheduledFollowUps(outcomeId: string): Promise<void> {
 }
 
 async function sendFollowUpNotification(outcome: UserOutcome, daysSince: number): Promise<void> {
-  // Implementation would integrate with notification service
+  // Integrate with notification service via Firestore
+  try {
+    await db.collection('notifications').add({
+      userId: outcome.userId,
+      type: 'follow_up_reminder',
+      title: 'Follow up on your job application',
+      message: `It's been ${daysSince} days since your application to ${outcome.companyName}. Consider following up!`,
+      scheduledFor: new Date(),
+      status: 'pending',
+      metadata: {
+        jobId: outcome.jobId,
+        companyName: outcome.companyName,
+        applicationDate: outcome.applicationDate
+      },
+      createdAt: FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Failed to send follow-up notification:', error);
+  }
   
   // Add reminder event to timeline
   const reminderEvent: OutcomeEvent = {

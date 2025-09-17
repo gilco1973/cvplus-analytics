@@ -36,6 +36,73 @@ export type {
 export type EntityType = 'user_profile' | 'processed_cv' | 'generated_content' | 'public_profile';
 export type AggregationPeriod = 'hour' | 'day' | 'week' | 'month' | 'year';
 
+// Conversion Analytics Types
+export interface ConversionEvent {
+  eventId: string;
+  type: string;
+  name: string;
+  category: 'signup' | 'subscription' | 'purchase' | 'engagement' | 'feature_usage';
+  timestamp: Date;
+  properties?: Record<string, any>;
+}
+
+export interface ConversionMetrics {
+  totalConversions: number;
+  totalValue: number;
+  uniqueUsers: number;
+  conversionRate: number;
+  averageOrderValue: number;
+  conversionsByType: Record<string, { count: number; value: number }>;
+  funnelMetrics: Array<{
+    step: string;
+    name: string;
+    conversions: number;
+    conversionRate: number;
+  }>;
+  timeRange: {
+    start: Date;
+    end: Date;
+  };
+}
+
+export interface BusinessIntelligenceReport {
+  reportId: string;
+  generatedAt: Date;
+  timeRange: {
+    start: Date;
+    end: Date;
+  };
+  revenue: {
+    total: number;
+    monthlyRecurring: number;
+    averageOrderValue: number;
+    revenuePerUser: number;
+  };
+  conversions: ConversionMetrics;
+  engagement: {
+    uniqueUsers: number;
+    totalSessions: number;
+    averageSessionDuration: number;
+    sessionsPerUser: number;
+  };
+  customers: {
+    newUsers: number;
+    customerAcquisitionCost: number;
+    averageChurnRisk: number;
+    retentionRate: number;
+  };
+  features: {
+    topFeatures: Array<{ feature: string; usage: number }>;
+    totalFeatureUsage: number;
+  };
+  forecasting?: {
+    projectedMonthlyRevenue: number;
+    projectedQuarterlyRevenue: number;
+    projectedYearlyRevenue: number;
+    revenueGrowthTrend: string;
+  };
+}
+
 // Import types first to avoid circular dependencies
 import type { AnalyticsEvent as CoreAnalyticsEvent, AnalyticsMetrics } from './analytics-core.types';
 // import type { FeatureUsage } from './enhanced-analytics';

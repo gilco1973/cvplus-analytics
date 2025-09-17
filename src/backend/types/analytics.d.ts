@@ -1,4 +1,4 @@
-// @ts-ignore - Export conflicts// Type declarations for @cvplus/analytics
+// Type declarations for @cvplus/analytics
 declare module '@cvplus/analytics' {
   export interface AnalyticsEvent { [key: string]: any; }
   export interface AnalyticsMetrics { [key: string]: any; }

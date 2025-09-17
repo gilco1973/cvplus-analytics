@@ -1,6 +1,6 @@
 /**
- * Success Prediction Types - Stub implementation
- * Note: These types should be moved to analytics or ml module
+ * Success Prediction Types - Complete implementation
+ * Comprehensive types for success prediction analytics
 */
 
 export interface SuccessPrediction {

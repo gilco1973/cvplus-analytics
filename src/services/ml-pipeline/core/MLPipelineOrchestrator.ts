@@ -5,11 +5,12 @@
  * responsibilities to focused service modules.
 */
 
-import { 
+import {
   SuccessPrediction,
   FeatureVector,
   UserOutcome
 } from '../../../types/phase2-models';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 // @ts-ignore - PredictiveRecommendation import preserved for future use
 import { PredictiveRecommendation } from '../../../types/phase2-models';
 import { ParsedCV } from '../../../types/job';
@@ -260,7 +261,18 @@ export class MLPipelineOrchestrator {
 
   private async logPrediction(prediction: SuccessPrediction, features: FeatureVector): Promise<void> {
     // Log prediction for monitoring and model improvement
-    // Implementation would store to monitoring system
+    try {
+      const db = getFirestore();
+      await db.collection('ml_predictions').add({
+        prediction,
+        features,
+        timestamp: FieldValue.serverTimestamp(),
+        modelVersion: this.orchestrator?.currentModelVersion || '1.0.0',
+        source: 'ml_pipeline_orchestrator'
+      });
+    } catch (error) {
+      console.error('Failed to log prediction:', error);
+    }
   }
 
   private async checkServiceHealth(healthCheck?: () => Promise<boolean> | boolean): Promise<boolean> {

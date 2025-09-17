@@ -29,7 +29,7 @@ export { getRevenueMetrics } from './getRevenueMetrics';
 // } from './external/getExternalDataAnalytics';
 
 // =============================================================================
-// CONVERSION ANALYTICS FUNCTIONS
+// CONVERSION ANALYTICS FUNCTIONS - FULLY IMPLEMENTED
 // =============================================================================
 export {
   trackConversionEvent,

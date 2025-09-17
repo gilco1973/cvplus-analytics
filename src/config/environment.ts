@@ -29,4 +29,8 @@ export const environment: EnvironmentConfig = {
   logLevel: (process.env.LOG_LEVEL as any) || 'info',
 };
 
+export function getEnvironmentConfig(): EnvironmentConfig {
+  return environment;
+}
+
 export default environment;

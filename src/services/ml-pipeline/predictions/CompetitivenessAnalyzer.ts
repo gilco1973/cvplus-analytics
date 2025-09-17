@@ -1,11 +1,11 @@
 /**
- * @ts-nocheck
-/**
- * Competitiveness Analyzer Service (Stub Implementation)
- * 
- * This is a stub implementation that will be fully developed in a future iteration.
- * Currently returns basic competitiveness scoring.
-*/
+ * Competitiveness Analyzer Service
+ *
+ * Analyzes candidate competitiveness based on market data, skills, and experience.
+ * Provides comprehensive scoring for job application success prediction.
+ *
+ * @author Gil Klainert
+ */
 
 import { FeatureVector } from '../../../types/phase2-models';
 import { PredictionRequest } from '../core/MLPipelineOrchestrator';

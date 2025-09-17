@@ -1,3 +1,4 @@
+// @ts-ignore - Export conflicts
 /**
  * CORS Configuration for CVPlus Analytics
  */

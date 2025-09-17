@@ -1,6 +1,10 @@
 /**
  * CVPlus Analytics - Business Intelligence & Dashboard Types
-// Advanced BI, reporting, and predictive analytics types
+ * Advanced BI, reporting, and predictive analytics types
+ *
+ * @author Gil Klainert
+ * @version 1.0.0
+ */
 
 /**
  * Dashboard type enumeration

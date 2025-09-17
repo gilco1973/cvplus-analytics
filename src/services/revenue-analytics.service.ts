@@ -84,8 +84,13 @@ export class RevenueAnalyticsService {
   private readonly CACHE_TTL = 300000; // 5 minutes
 
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16'
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is required but not set');
+    }
+
+    this.stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2024-04-10'
     });
   }
 
@@ -519,20 +524,67 @@ export class RevenueAnalyticsService {
     return (endYear - startYear) * 12 + (endMonth - startMonth);
   }
 
-  // Placeholder methods - would be implemented with actual data queries
   private async getActiveUsersInMonth(cohortUsers: any[], month: Date): Promise<number> {
-    // Implementation would check subscription status in given month
-    return Math.floor(cohortUsers.length * 0.85); // Placeholder
+    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+    const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+    let activeCount = 0;
+    for (const user of cohortUsers) {
+      const subscription = await this.db.collection('subscriptions')
+        .where('userId', '==', user.id)
+        .where('status', '==', 'active')
+        .where('createdAt', '<=', Timestamp.fromDate(endOfMonth))
+        .limit(1)
+        .get();
+
+      if (!subscription.empty) {
+        const sub = subscription.docs[0].data();
+        const cancelledAt = sub.cancelledAt?.toDate();
+        if (!cancelledAt || cancelledAt > endOfMonth) {
+          activeCount++;
+        }
+      }
+    }
+
+    return activeCount;
   }
 
   private async getRevenueInMonth(cohortUsers: any[], month: Date): Promise<number> {
-    // Implementation would sum revenue for cohort users in given month
-    return cohortUsers.length * 25; // Placeholder
+    const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+    const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+    let totalRevenue = 0;
+    for (const user of cohortUsers) {
+      const payments = await this.db.collection('payments')
+        .where('userId', '==', user.id)
+        .where('status', '==', 'succeeded')
+        .where('createdAt', '>=', Timestamp.fromDate(startOfMonth))
+        .where('createdAt', '<=', Timestamp.fromDate(endOfMonth))
+        .get();
+
+      payments.forEach(doc => {
+        const payment = doc.data();
+        totalRevenue += payment.amount || 0;
+      });
+    }
+
+    return totalRevenue;
   }
 
   private async getMonthlyRevenue(start: Date, end: Date): Promise<number> {
-    // Implementation would sum all revenue in the month
-    return 50000; // Placeholder
+    const payments = await this.db.collection('payments')
+      .where('status', '==', 'succeeded')
+      .where('createdAt', '>=', Timestamp.fromDate(start))
+      .where('createdAt', '<=', Timestamp.fromDate(end))
+      .get();
+
+    let totalRevenue = 0;
+    payments.forEach(doc => {
+      const payment = doc.data();
+      totalRevenue += payment.amount || 0;
+    });
+
+    return totalRevenue;
   }
 
   private async getNewCustomersCount(start: Date, end: Date): Promise<number> {
@@ -561,8 +613,21 @@ export class RevenueAnalyticsService {
   }
 
   private async getExpandedRevenue(start: Date, end: Date): Promise<number> {
-    // Implementation would track upgrades and expansions
-    return 2000; // Placeholder
+    const upgrades = await this.db.collection('subscription_changes')
+      .where('type', '==', 'upgrade')
+      .where('createdAt', '>=', Timestamp.fromDate(start))
+      .where('createdAt', '<=', Timestamp.fromDate(end))
+      .get();
+
+    let expandedRevenue = 0;
+    upgrades.forEach(doc => {
+      const upgrade = doc.data();
+      const oldTierRevenue = this.getTierMonthlyRevenue(upgrade.fromTier);
+      const newTierRevenue = this.getTierMonthlyRevenue(upgrade.toTier);
+      expandedRevenue += (newTierRevenue - oldTierRevenue);
+    });
+
+    return expandedRevenue;
   }
 
   private async getMRRAtDate(date: Date): Promise<number> {

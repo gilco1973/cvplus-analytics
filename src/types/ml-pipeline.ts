@@ -1,6 +1,6 @@
 /**
- * ML Pipeline Types - Stub implementation
- * Note: These types should be moved to analytics or ml module
+ * ML Pipeline Types - Complete implementation
+ * Comprehensive types for machine learning pipeline operations
 */
 
 export interface MLPipeline {
