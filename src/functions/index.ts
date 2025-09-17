@@ -1,6 +1,7 @@
 /**
  * CVPlus Analytics Functions
-// Firebase Functions exports for analytics, revenue tracking, and business intelligence
+ * Firebase Functions exports for analytics, revenue tracking, and business intelligence
+ */
 
 // =============================================================================
 // CORE ANALYTICS FUNCTIONS

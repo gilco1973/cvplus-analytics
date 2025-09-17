@@ -51,6 +51,10 @@ export {
 export { CacheStatsManager } from './services/cache-stats-manager';
 export { PerformanceMetricsManager } from './services/performance-metrics-manager';
 
+// ML Services migrated from @cvplus/recommendations
+export { VectorDatabaseService } from './services/ml/vector-database.service';
+export { EmbeddingService } from './services/ml/embedding.service';
+
 // Advanced Services (when available) - conditional exports removed
 // export { CVPlusAnalyticsSDK } from './services/analytics-sdk.service';
 // export { default as PrivacyComplianceService } from './services/privacy-compliance.service';

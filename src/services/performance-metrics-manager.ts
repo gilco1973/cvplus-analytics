@@ -14,7 +14,7 @@ import type {
   RecommendationError,
   CacheStats
 } from '../types/analytics-errors';
-import type { CacheService } from '../cache.service';
+import type { CacheService } from './cache/cache.service';
 
 // ============================================================================
 // CONSTANTS

@@ -180,7 +180,6 @@ export type {
 export * from './analytics.types';
 export * from './revenue.types';
 export * from './cohort.types';
-// export * from './dashboard.types'; // TODO: Create dashboard.types.ts when needed
 export * from './user-outcomes';
 
 // Migrated from Core Module
@@ -201,6 +200,3 @@ export * from './ml-pipeline';
 export * from './success-prediction';
 export * from './analytics-errors';
 
-// export * from './api'; // TODO: Create api.ts when needed
-// export * from './booking.types'; // TODO: Create booking.types.ts when needed
-// export * from './payment.types'; // TODO: Create payment.types.ts when needed
