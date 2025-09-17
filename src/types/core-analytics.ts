@@ -4,7 +4,7 @@
  *
  * Originally from cv-processing, moved to analytics submodule for proper domain boundaries.
  * These types provide foundational analytics interfaces used across the CVPlus platform.
-  */
+*/
 
 export interface AnalyticsMetrics {
   pageViews: number;

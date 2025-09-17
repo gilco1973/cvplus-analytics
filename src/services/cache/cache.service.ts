@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @created 2025-08-28
-  */
+*/
 
 import { logger } from 'firebase-functions';
 import { redisClient } from './redis-client.service';
@@ -43,7 +43,7 @@ class CacheService {
 
   /**
    * Get value from cache with optional fallback function
-    */
+  */
   async get<T>(
     key: string, 
     fallbackFn?: () => Promise<T>,
@@ -122,7 +122,7 @@ class CacheService {
 
   /**
    * Set value in cache
-    */
+  */
   async set<T>(key: string, value: T, options?: CacheOptions): Promise<boolean> {
     const opts = { ...this.defaultOptions, ...options };
     const cacheKey = this.buildKey(key, opts.namespace);
@@ -152,7 +152,7 @@ class CacheService {
 
   /**
    * Delete value from cache
-    */
+  */
   async delete(key: string, options?: Pick<CacheOptions, 'namespace'>): Promise<boolean> {
     const opts = { ...this.defaultOptions, ...options };
     const cacheKey = this.buildKey(key, opts.namespace);
@@ -170,7 +170,7 @@ class CacheService {
 
   /**
    * Delete all keys matching a pattern
-    */
+  */
   async deletePattern(pattern: string, options?: Pick<CacheOptions, 'namespace'>): Promise<number> {
     const opts = { ...this.defaultOptions, ...options };
     const fullPattern = this.buildKey(pattern, opts.namespace);
@@ -188,7 +188,7 @@ class CacheService {
 
   /**
    * Check if key exists in cache
-    */
+  */
   async exists(key: string, options?: Pick<CacheOptions, 'namespace'>): Promise<boolean> {
     const opts = { ...this.defaultOptions, ...options };
     const cacheKey = this.buildKey(key, opts.namespace);
@@ -204,7 +204,7 @@ class CacheService {
 
   /**
    * Get multiple values from cache in batch
-    */
+  */
   async getBatch<T>(
     keys: string[],
     fallbackFn?: (missedKeys: string[]) => Promise<Record<string, T>>,
@@ -329,7 +329,7 @@ class CacheService {
 
   /**
    * Set multiple values in cache in batch
-    */
+  */
   async setBatch<T>(data: Record<string, T>, options?: CacheOptions): Promise<boolean> {
     const opts = { ...this.defaultOptions, ...options };
     const entries = Object.entries(data).filter(([_, value]) => 
@@ -381,7 +381,7 @@ class CacheService {
 
   /**
    * Increment numeric value in cache
-    */
+  */
   async increment(key: string, delta: number = 1, options?: CacheOptions): Promise<number | null> {
     const opts = { ...this.defaultOptions, ...options };
     const cacheKey = this.buildKey(key, opts.namespace);
@@ -411,14 +411,14 @@ class CacheService {
 
   /**
    * Build cache key with namespace
-    */
+  */
   private buildKey(key: string, namespace: string): string {
     return `${namespace}:${key}`;
   }
 
   /**
    * Serialize value to string
-    */
+  */
   private serialize<T>(value: T): string {
     try {
       return JSON.stringify(value);
@@ -430,7 +430,7 @@ class CacheService {
 
   /**
    * Deserialize string to value
-    */
+  */
   private deserialize<T>(value: string): T {
     try {
       return JSON.parse(value);
@@ -442,7 +442,7 @@ class CacheService {
 
   /**
    * Get cache performance statistics
-    */
+  */
   getStats() {
     return {
       redis: redisClient.getMetrics(),
@@ -454,7 +454,7 @@ class CacheService {
 
   /**
    * Health check for cache service
-    */
+  */
   async healthCheck(): Promise<{ healthy: boolean; details: any }> {
     try {
       const testKey = `health_check_${Date.now()}`;

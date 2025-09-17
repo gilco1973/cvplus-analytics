@@ -3,7 +3,7 @@
  * 
  * This is a stub implementation that will be fully developed in a future iteration.
  * Currently returns basic heuristic-based salary predictions.
-  */
+*/
 
 import { FeatureVector, SalaryPrediction } from '../../../types/phase2-models';
 import { PredictionRequest } from '../core/MLPipelineOrchestrator';

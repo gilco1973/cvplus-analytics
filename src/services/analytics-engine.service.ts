@@ -7,7 +7,7 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
-  */
+*/
 
 import * as admin from 'firebase-admin';
 import { AnalyticsEvent, AnalyticsMetrics } from '../types/analytics';
@@ -162,7 +162,7 @@ export class AnalyticsEngineService {
 
   /**
    * Generate comprehensive business metrics
-    */
+  */
   async generateBusinessMetrics(period: '1h' | '24h' | '7d' | '30d'): Promise<BusinessMetrics> {
     try {
       const now = new Date();
@@ -212,7 +212,7 @@ export class AnalyticsEngineService {
 
   /**
    * Analyze trends and generate forecasts
-    */
+  */
   async analyzeTrends(metric: string, period: '7d' | '30d' | '90d'): Promise<TrendAnalysis> {
     try {
       const endTime = new Date();
@@ -261,7 +261,7 @@ export class AnalyticsEngineService {
 
   /**
    * Generate user behavior insights
-    */
+  */
   async generateUserBehaviorInsights(userId?: string): Promise<UserBehaviorInsights> {
     try {
       const now = new Date();
@@ -321,7 +321,7 @@ export class AnalyticsEngineService {
 
   /**
    * Generate quality insights and analysis
-    */
+  */
   async generateQualityInsights(period: '1h' | '24h' | '7d' | '30d'): Promise<QualityInsights> {
     try {
       const now = new Date();
@@ -381,7 +381,7 @@ export class AnalyticsEngineService {
 
   /**
    * Get analytics summary for dashboard
-    */
+  */
   async getAnalyticsSummary(): Promise<{
     performance: SystemPerformanceMetrics;
     business: BusinessMetrics;
@@ -411,7 +411,7 @@ export class AnalyticsEngineService {
 
   /**
    * Private helper methods
-    */
+  */
   private getPeriodStartTime(endTime: Date, period: string): Date {
     const periodHours = {
       '1h': 1,

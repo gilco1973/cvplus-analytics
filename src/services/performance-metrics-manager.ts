@@ -6,7 +6,7 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
-  */
+*/
 
 import { RecommendationErrorType } from '../types/analytics-errors';
 import type {
@@ -48,7 +48,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Initialize default metrics
-    */
+  */
   private initializeMetrics(): PerformanceMetrics {
     return {
       requestDuration: 0,
@@ -65,7 +65,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Record successful request
-    */
+  */
   recordSuccess(duration: number, fromCache: boolean): void {
     this.requestCount++;
     this.successCount++;
@@ -76,7 +76,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Record error request
-    */
+  */
   recordError(error: RecommendationError, duration: number): void {
     this.requestCount++;
     this.errorCount++;
@@ -92,7 +92,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Update performance metrics
-    */
+  */
   private updateMetrics(duration: number, fromCache: boolean): void {
     const cacheStats = this.cacheService.getStats();
     
@@ -111,7 +111,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Get current performance metrics
-    */
+  */
   getPerformanceMetrics(): PerformanceMetrics {
     // Update with latest cache stats
     this.updateMetrics(this.performanceMetrics.requestDuration, false);
@@ -120,7 +120,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Start performance tracking and reporting
-    */
+  */
   private startPerformanceTracking(): void {
     // Report metrics every 60 seconds
     this.reportingTimer = setInterval(() => {
@@ -131,7 +131,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Stop performance tracking
-    */
+  */
   stopPerformanceTracking(): void {
     if (this.reportingTimer) {
       clearInterval(this.reportingTimer);
@@ -141,7 +141,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Report current metrics to console
-    */
+  */
   private reportMetrics(): void {
     console.log('[PerformanceMetricsManager] Performance Metrics:', {
       requests: this.requestCount,
@@ -157,7 +157,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Check performance against thresholds and warn if exceeded
-    */
+  */
   private checkPerformanceThresholds(): void {
     const warnings: string[] = [];
     
@@ -180,7 +180,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Check if service is healthy based on performance metrics
-    */
+  */
   isHealthy(): boolean {
     const cacheHealthy = this.cacheService.isHealthy();
     const performanceHealthy = (
@@ -193,7 +193,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Get detailed health status
-    */
+  */
   getHealthStatus(): {
     healthy: boolean;
     metrics: PerformanceMetrics;
@@ -229,7 +229,7 @@ export class PerformanceMetricsManager {
 
   /**
    * Reset all metrics (for testing)
-    */
+  */
   resetMetrics(): void {
     this.requestCount = 0;
     this.successCount = 0;
@@ -242,14 +242,14 @@ export class PerformanceMetricsManager {
 
   /**
    * Get performance targets for reference
-    */
+  */
   getPerformanceTargets(): typeof PERFORMANCE_TARGETS {
     return { ...PERFORMANCE_TARGETS };
   }
 
   /**
    * Cleanup resources
-    */
+  */
   dispose(): void {
     this.stopPerformanceTracking();
   }

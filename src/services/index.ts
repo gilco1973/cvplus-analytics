@@ -7,7 +7,7 @@
  * Domain: Analytics, Performance Monitoring, Metrics
  * Target Submodule: @cvplus/analytics ✅ MIGRATED
  * Migration Phase: 4B ✅ COMPLETE
-  */
+*/
 
 // Re-export from migrated @cvplus/analytics package for backward compatibility
 export {

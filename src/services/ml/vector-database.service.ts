@@ -1,7 +1,7 @@
 /**
  * Vector Database Service
  * Handles vector embeddings and similarity search functionality
-  */
+*/
 
 export interface VectorInput {
   id: string;

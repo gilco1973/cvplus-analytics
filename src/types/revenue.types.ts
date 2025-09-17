@@ -1,3 +1,6 @@
+/**
+ * Revenue Analytics Types
+ */
 export interface RevenueData {
   amount: number;
   currency: string;

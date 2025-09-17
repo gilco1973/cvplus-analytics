@@ -3,7 +3,7 @@
  * 
  * Predicts the probability of receiving a job offer based on interview success
  * likelihood, market competition, and candidate qualifications.
-  */
+*/
 
 import { FeatureVector } from '../../../types/phase2-models';
 
@@ -13,7 +13,7 @@ export class OfferPredictor {
   
   /**
    * Predict offer probability based on feature vector
-    */
+  */
   async predict(features: FeatureVector): Promise<number> {
     try {
       
@@ -36,7 +36,7 @@ export class OfferPredictor {
 
   /**
    * Health check for offer predictor
-    */
+  */
   async healthCheck(): Promise<boolean> {
     try {
       const testFeatures = this.createTestFeatures();

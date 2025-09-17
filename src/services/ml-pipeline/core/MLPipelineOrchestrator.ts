@@ -3,7 +3,7 @@
  * 
  * Coordinates the entire ML prediction pipeline while delegating specific
  * responsibilities to focused service modules.
-  */
+*/
 
 import { 
   SuccessPrediction,
@@ -57,7 +57,7 @@ export class MLPipelineOrchestrator {
 
   /**
    * Generate comprehensive success prediction for a job application
-    */
+  */
   async predictSuccess(request: PredictionRequest): Promise<SuccessPrediction> {
     try {
       
@@ -143,7 +143,7 @@ export class MLPipelineOrchestrator {
 
   /**
    * Record user outcome for model improvement
-    */
+  */
   async recordOutcome(outcome: UserOutcome): Promise<void> {
     try {
       
@@ -157,7 +157,7 @@ export class MLPipelineOrchestrator {
 
   /**
    * Get orchestrator health status
-    */
+  */
   async getHealthStatus(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy';
     services: Record<string, boolean>;

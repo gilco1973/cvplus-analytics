@@ -22,7 +22,7 @@ import {
 /**
  * Business Intelligence Service
  * Comprehensive BI platform with dashboards, reporting, and predictive analytics
-  */
+*/
 export class BusinessIntelligenceService {
   private dashboardManager: DashboardManager;
   private reportingEngine: ReportingEngine;
@@ -42,7 +42,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Initialize Business Intelligence service
-    */
+  */
   async initialize(): Promise<void> {
     await this.dashboardManager.initialize();
     await this.reportingEngine.initialize();
@@ -53,7 +53,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Dashboard Management
-    */
+  */
 
   async createDashboard(config: {
     name: string;
@@ -269,7 +269,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Metrics Management
-    */
+  */
 
   async createBusinessMetric(config: {
     name: string;
@@ -321,7 +321,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Reporting
-    */
+  */
 
   async createReport(config: {
     name: string;
@@ -389,7 +389,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Alerts
-    */
+  */
 
   async createAlert(config: {
     name: string;
@@ -430,7 +430,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Predictive Analytics
-    */
+  */
 
   async createPredictiveModel(config: {
     name: string;
@@ -508,7 +508,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Query Engine
-    */
+  */
 
   async executeQuery(query: AnalyticsQuery): Promise<any[]> {
     return await this.queryEngine.execute(query);
@@ -524,7 +524,7 @@ export class BusinessIntelligenceService {
 
   /**
    * CVPlus-specific Analytics
-    */
+  */
 
   async getCVGenerationMetrics(timeRange: TimeRange): Promise<{
     totalGenerations: number;
@@ -569,7 +569,7 @@ export class BusinessIntelligenceService {
 
   /**
    * Private helper methods
-    */
+  */
 
   private async refreshDashboardWidgets(dashboard: Dashboard): Promise<void> {
     const now = Date.now();
@@ -659,7 +659,7 @@ export class BusinessIntelligenceService {
 
 /**
  * Supporting classes for BI functionality
-  */
+*/
 
 class DashboardManager {
   async initialize(): Promise<void> {}

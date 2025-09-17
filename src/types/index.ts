@@ -1,7 +1,7 @@
 /**
  * CVPlus Analytics - Comprehensive Type Definitions
  * Main export file for all analytics types - Legacy and Modern
-  */
+*/
 
 // =============================================================================
 // LEGACY INTERFACES (for backwards compatibility)
@@ -200,3 +200,6 @@ export * from './ml-pipeline';
 export * from './success-prediction';
 export * from './analytics-errors';
 
+export * from './api';
+export * from './booking.types';
+export * from './payment.types';

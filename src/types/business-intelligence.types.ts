@@ -4,7 +4,7 @@
 
 /**
  * Dashboard type enumeration
-  */
+*/
 export enum DashboardType {
   EXECUTIVE = 'executive',
   PRODUCT = 'product',
@@ -17,7 +17,7 @@ export enum DashboardType {
 
 /**
  * Widget type enumeration
-  */
+*/
 export enum WidgetType {
   METRIC_CARD = 'metric_card',
   LINE_CHART = 'line_chart',
@@ -37,7 +37,7 @@ export enum WidgetType {
 
 /**
  * Time aggregation periods
-  */
+*/
 export enum TimeAggregation {
   MINUTE = 'minute',
   HOUR = 'hour',
@@ -50,7 +50,7 @@ export enum TimeAggregation {
 
 /**
  * Metric calculation types
-  */
+*/
 export enum MetricCalculation {
   SUM = 'sum',
   COUNT = 'count',
@@ -66,7 +66,7 @@ export enum MetricCalculation {
 
 /**
  * Report format types
-  */
+*/
 export enum ReportFormat {
   PDF = 'pdf',
   CSV = 'csv',
@@ -77,7 +77,7 @@ export enum ReportFormat {
 
 /**
  * Alert condition types
-  */
+*/
 export enum AlertCondition {
   GREATER_THAN = 'greater_than',
   LESS_THAN = 'less_than',
@@ -89,7 +89,7 @@ export enum AlertCondition {
 
 /**
  * Business metric definition
-  */
+*/
 export interface BusinessMetric {
   metricId: string;
   name: string;
@@ -130,7 +130,7 @@ export interface BusinessMetric {
 
 /**
  * Metric filter definition
-  */
+*/
 export interface MetricFilter {
   field: string;
   operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than' | 'in' | 'not_in' | 'between';
@@ -140,7 +140,7 @@ export interface MetricFilter {
 
 /**
  * Dashboard configuration
-  */
+*/
 export interface Dashboard {
   dashboardId: string;
   name: string;
@@ -193,7 +193,7 @@ export interface Dashboard {
 
 /**
  * Dashboard permissions
-  */
+*/
 export interface DashboardPermissions {
   canView: string[];           // User/role IDs
   canEdit: string[];           // User/role IDs
@@ -204,7 +204,7 @@ export interface DashboardPermissions {
 
 /**
  * Dashboard widget configuration
-  */
+*/
 export interface DashboardWidget {
   widgetId: string;
   title: string;
@@ -248,7 +248,7 @@ export interface DashboardWidget {
 
 /**
  * Widget data configuration
-  */
+*/
 export interface WidgetDataConfig {
   // Data source
   dataSource: string;
@@ -270,7 +270,7 @@ export interface WidgetDataConfig {
 
 /**
  * Widget visualization configuration
-  */
+*/
 export interface WidgetVisualization {
   // Chart-specific settings
   chartConfig?: ChartConfig;
@@ -290,7 +290,7 @@ export interface WidgetVisualization {
 
 /**
  * Chart configuration
-  */
+*/
 export interface ChartConfig {
   // Axes
   xAxis: {
@@ -326,7 +326,7 @@ export interface ChartConfig {
 
 /**
  * Chart series configuration
-  */
+*/
 export interface ChartSeries {
   name: string;
   field: string;
@@ -338,7 +338,7 @@ export interface ChartSeries {
 
 /**
  * Table configuration
-  */
+*/
 export interface TableConfig {
   columns: TableColumn[];
   pagination: {
@@ -365,7 +365,7 @@ export interface TableConfig {
 
 /**
  * Table column configuration
-  */
+*/
 export interface TableColumn {
   field: string;
   title: string;
@@ -379,7 +379,7 @@ export interface TableColumn {
 
 /**
  * Metric card configuration
-  */
+*/
 export interface MetricCardConfig {
   value: {
     field: string;
@@ -407,7 +407,7 @@ export interface MetricCardConfig {
 
 /**
  * Funnel configuration
-  */
+*/
 export interface FunnelConfig {
   steps: FunnelStep[];
   orientation: 'vertical' | 'horizontal';
@@ -418,7 +418,7 @@ export interface FunnelConfig {
 
 /**
  * Funnel step definition
-  */
+*/
 export interface FunnelStep {
   name: string;
   eventName: string;
@@ -427,7 +427,7 @@ export interface FunnelStep {
 
 /**
  * Cohort table configuration
-  */
+*/
 export interface CohortTableConfig {
   cohortField: string;        // Field to cohort by (usually registration date)
   periodField: string;        // Field to measure periods (usually last activity)
@@ -439,7 +439,7 @@ export interface CohortTableConfig {
 
 /**
  * Global dashboard filter
-  */
+*/
 export interface GlobalFilter {
   filterId: string;
   name: string;
@@ -453,7 +453,7 @@ export interface GlobalFilter {
 
 /**
  * Filter option
-  */
+*/
 export interface FilterOption {
   value: any;
   label: string;
@@ -461,7 +461,7 @@ export interface FilterOption {
 
 /**
  * Widget filter
-  */
+*/
 export interface WidgetFilter {
   field: string;
   operator: string;
@@ -471,7 +471,7 @@ export interface WidgetFilter {
 
 /**
  * Drill-down configuration
-  */
+*/
 export interface DrillDownConfig {
   enabled: boolean;
   levels: DrillDownLevel[];
@@ -479,7 +479,7 @@ export interface DrillDownConfig {
 
 /**
  * Drill-down level
-  */
+*/
 export interface DrillDownLevel {
   field: string;
   title: string;
@@ -488,7 +488,7 @@ export interface DrillDownLevel {
 
 /**
  * Click action configuration
-  */
+*/
 export interface ClickAction {
   type: 'filter' | 'navigate' | 'modal' | 'export';
   config: Record<string, any>;
@@ -496,7 +496,7 @@ export interface ClickAction {
 
 /**
  * Analytics query interface
-  */
+*/
 export interface AnalyticsQuery {
   // Data source
   from: string;
@@ -529,7 +529,7 @@ export interface AnalyticsQuery {
 
 /**
  * Query field specification
-  */
+*/
 export interface QueryField {
   field: string;
   alias?: string;
@@ -539,7 +539,7 @@ export interface QueryField {
 
 /**
  * Query condition
-  */
+*/
 export interface QueryCondition {
   field: string;
   operator: string;
@@ -549,7 +549,7 @@ export interface QueryCondition {
 
 /**
  * Query ordering
-  */
+*/
 export interface QueryOrderBy {
   field: string;
   direction: 'asc' | 'desc';
@@ -557,7 +557,7 @@ export interface QueryOrderBy {
 
 /**
  * Query join
-  */
+*/
 export interface QueryJoin {
   table: string;
   type: 'inner' | 'left' | 'right' | 'full';
@@ -566,7 +566,7 @@ export interface QueryJoin {
 
 /**
  * Time range specification
-  */
+*/
 export interface TimeRange {
   type: 'relative' | 'absolute' | 'custom';
   
@@ -592,7 +592,7 @@ export interface TimeRange {
 
 /**
  * Report definition
-  */
+*/
 export interface Report {
   reportId: string;
   name: string;
@@ -622,7 +622,7 @@ export interface Report {
 
 /**
  * Report configuration
-  */
+*/
 export interface ReportConfig {
   // Data sources
   dataSources: string[];
@@ -652,7 +652,7 @@ export interface ReportConfig {
 
 /**
  * Report section
-  */
+*/
 export interface ReportSection {
   sectionId: string;
   title: string;
@@ -663,7 +663,7 @@ export interface ReportSection {
 
 /**
  * Report section content
-  */
+*/
 export interface ReportSectionContent {
   // Text content
   text?: {
@@ -703,7 +703,7 @@ export interface ReportSectionContent {
 
 /**
  * Report filter
-  */
+*/
 export interface ReportFilter {
   field: string;
   operator: string;
@@ -713,7 +713,7 @@ export interface ReportFilter {
 
 /**
  * Report schedule
-  */
+*/
 export interface ReportSchedule {
   enabled: boolean;
   frequency: 'hourly' | 'daily' | 'weekly' | 'monthly' | 'quarterly';
@@ -731,7 +731,7 @@ export interface ReportSchedule {
 
 /**
  * Report condition
-  */
+*/
 export interface ReportCondition {
   field: string;
   operator: AlertCondition;
@@ -741,7 +741,7 @@ export interface ReportCondition {
 
 /**
  * Report distribution
-  */
+*/
 export interface ReportDistribution {
   // Email distribution
   email: {
@@ -777,7 +777,7 @@ export interface ReportDistribution {
 
 /**
  * Report permissions
-  */
+*/
 export interface ReportPermissions {
   canView: string[];
   canEdit: string[];
@@ -787,7 +787,7 @@ export interface ReportPermissions {
 
 /**
  * Alert configuration
-  */
+*/
 export interface Alert {
   alertId: string;
   name: string;
@@ -812,7 +812,7 @@ export interface Alert {
 
 /**
  * Alert trigger configuration
-  */
+*/
 export interface AlertTrigger {
   // Metric to monitor
   metricId: string;
@@ -839,7 +839,7 @@ export interface AlertTrigger {
 
 /**
  * Alert notification configuration
-  */
+*/
 export interface AlertNotification {
   type: 'email' | 'slack' | 'webhook' | 'sms';
   config: Record<string, any>;
@@ -859,7 +859,7 @@ export interface AlertNotification {
 
 /**
  * Predictive analytics model configuration
-  */
+*/
 export interface PredictiveModel {
   modelId: string;
   name: string;
@@ -897,7 +897,7 @@ export interface PredictiveModel {
 
 /**
  * Model feature definition
-  */
+*/
 export interface ModelFeature {
   name: string;
   type: 'categorical' | 'numerical' | 'boolean' | 'datetime';
@@ -908,7 +908,7 @@ export interface ModelFeature {
 
 /**
  * Model performance metrics
-  */
+*/
 export interface ModelPerformance {
   accuracy?: number;
   precision?: number;
@@ -934,7 +934,7 @@ export interface ModelPerformance {
 
 /**
  * Prediction result
-  */
+*/
 export interface PredictionResult {
   modelId: string;
   predictionId: string;

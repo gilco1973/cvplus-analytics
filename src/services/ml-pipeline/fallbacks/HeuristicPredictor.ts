@@ -3,7 +3,7 @@
  * 
  * Provides rule-based predictions using domain knowledge and statistical
  * models when ML services are unavailable.
-  */
+*/
 
 import { SalaryPrediction, TimeToHirePrediction, PredictiveRecommendation } from '../../../types/phase2-models';
 import { PredictionRequest } from '../core/MLPipelineOrchestrator';
@@ -12,7 +12,7 @@ export class HeuristicPredictor {
 
   /**
    * Predict interview probability using heuristic rules
-    */
+  */
   async predictInterviewProbability(request: PredictionRequest): Promise<number> {
     
     const { cv, jobDescription } = request;
@@ -58,7 +58,7 @@ export class HeuristicPredictor {
 
   /**
    * Predict offer probability using heuristic rules
-    */
+  */
   async predictOfferProbability(request: PredictionRequest): Promise<number> {
     
     const interviewProb = await this.predictInterviewProbability(request);
@@ -97,7 +97,7 @@ export class HeuristicPredictor {
 
   /**
    * Predict salary using heuristic rules
-    */
+  */
   async predictSalary(request: PredictionRequest): Promise<SalaryPrediction> {
     
     const { cv, industry, location } = request;
@@ -164,7 +164,7 @@ export class HeuristicPredictor {
 
   /**
    * Predict time to hire using heuristic rules
-    */
+  */
   async predictTimeToHire(request: PredictionRequest): Promise<TimeToHirePrediction> {
     
     const { jobDescription, industry } = request;
@@ -209,7 +209,7 @@ export class HeuristicPredictor {
 
   /**
    * Calculate competitiveness score
-    */
+  */
   calculateCompetitivenessScore(request: PredictionRequest): number {
     const skillMatch = this.calculateSkillMatchSync(request.cv, request.jobDescription);
     const experienceYears = this.calculateTotalExperience(request.cv.experience);
@@ -228,7 +228,7 @@ export class HeuristicPredictor {
 
   /**
    * Generate basic recommendations
-    */
+  */
   async generateBasicRecommendations(request: PredictionRequest): Promise<PredictiveRecommendation[]> {
     const recommendations: PredictiveRecommendation[] = [];
     
@@ -297,7 +297,7 @@ export class HeuristicPredictor {
 
   /**
    * Health check for heuristic predictor
-    */
+  */
   async healthCheck(): Promise<boolean> {
     try {
       const testRequest: PredictionRequest = {

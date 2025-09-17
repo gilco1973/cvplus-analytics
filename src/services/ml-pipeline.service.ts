@@ -3,7 +3,7 @@
  * 
  * This service provides a simplified interface to the ML Pipeline
  * using the new modular architecture for improved maintainability.
-  */
+*/
 
 import { 
   SuccessPrediction, 
@@ -42,7 +42,7 @@ export class MLPipelineService {
 
   /**
    * Generate comprehensive success prediction for a job application
-    */
+  */
   async predictSuccess(request: PredictionRequest): Promise<SuccessPrediction> {
     
     // Convert to orchestrator format
@@ -66,7 +66,7 @@ export class MLPipelineService {
   /**
    * Extract comprehensive features from CV and job context
    * @deprecated Use orchestrator.extractFeatures() directly for better performance
-    */
+  */
   async extractFeatures(request: PredictionRequest) {
     
     // For backward compatibility, delegate to orchestrator
@@ -76,7 +76,7 @@ export class MLPipelineService {
   /**
    * Train or retrain ML models with new data
    * @deprecated Model training will be handled by dedicated training service
-    */
+  */
   async trainModel(config: MLTrainingConfig): Promise<{ success: boolean; modelId: string; metrics: any }> {
     
     return {
@@ -88,14 +88,14 @@ export class MLPipelineService {
 
   /**
    * Record user outcome for model improvement
-    */
+  */
   async recordOutcome(outcome: UserOutcome): Promise<void> {
     return this.orchestrator.recordOutcome(outcome);
   }
 
   /**
    * Get prediction statistics
-    */
+  */
   async getStatistics(userId: string): Promise<any> {
     // Delegate to orchestrator's health status which includes statistics
     const healthStatus = await this.orchestrator.getHealthStatus();
@@ -112,14 +112,14 @@ export class MLPipelineService {
 
   /**
    * Get service health status
-    */
+  */
   async getHealthStatus() {
     return this.orchestrator.getHealthStatus();
   }
 
   /**
    * Get orchestrator instance for advanced usage
-    */
+  */
   getOrchestrator(): MLPipelineOrchestrator {
     return this.orchestrator;
   }
@@ -127,15 +127,15 @@ export class MLPipelineService {
 
 /**
  * Export singleton instance for backward compatibility
-  */
+*/
 export const mlPipelineService = new MLPipelineService();
 
 /**
  * Export the orchestrator for direct access to new architecture
-  */
+*/
 export { MLPipelineOrchestrator };
 
 /**
  * Export types for external usage
-  */
+*/
 export type { FeatureVector, SuccessPrediction, UserOutcome, MLTrainingConfig } from '../types/phase2-models';

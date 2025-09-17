@@ -3,7 +3,7 @@
  * 
  * Collects and processes user job application outcomes for ML training
  * and analytics. Implements automated follow-up and data validation.
-  */
+*/
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
@@ -23,7 +23,7 @@ const db = admin.firestore();
 
 /**
  * Track user job application outcome
-  */
+*/
 export const trackUserOutcome = onCall(
   { ...corsOptions, timeoutSeconds: 60 },
   async (request: CallableRequest) => {
@@ -146,7 +146,7 @@ export const trackUserOutcome = onCall(
 
 /**
  * Update existing outcome with new events
-  */
+*/
 export const updateUserOutcome = onCall(
   { ...corsOptions, timeoutSeconds: 30 },
   async (request: CallableRequest) => {
@@ -254,7 +254,7 @@ export const updateUserOutcome = onCall(
 
 /**
  * Get user's outcome statistics
-  */
+*/
 export const getUserOutcomeStats = onCall(
   { ...corsOptions, timeoutSeconds: 30 },
   async (request: CallableRequest) => {
@@ -302,7 +302,7 @@ export const getUserOutcomeStats = onCall(
 
 /**
  * Automated follow-up scheduler
-  */
+*/
 export const sendFollowUpReminders = onSchedule(
   { schedule: '0 10 * * *', timeZone: 'America/New_York' }, // Daily at 10 AM ET
   async () => {
@@ -339,7 +339,7 @@ export const sendFollowUpReminders = onSchedule(
 
 /**
  * Process outcome data for ML training
-  */
+*/
 export const processOutcomeForML = onDocumentCreated(
   'user_outcomes/{outcomeId}',
   async (event) => {

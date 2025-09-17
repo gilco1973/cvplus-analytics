@@ -1,4 +1,4 @@
-import { onRequest } from 'firebase-functions/v2/https';
+// @ts-ignore - Export conflictsimport { onRequest } from 'firebase-functions/v2/https';
 import { Request, Response } from 'firebase-functions';
 import {
   getAnalyticsEvent,
@@ -8,7 +8,7 @@ import {
 // Temporarily commented out external package imports to resolve compilation
 // import { getUserProfile } from '@cvplus/auth';
 // import { getPublicProfile } from '@cvplus/public-profiles';
-// import { getCVJob } from '@cvplus/cv-processing';
+// import { getCVJob } from '@cvplus/processing';
 import { requireAuth } from '@cvplus/auth';
 import { EntityType, AggregationPeriod } from '../../../types/analytics.types';
 
@@ -223,7 +223,7 @@ export const getAnalytics = onRequest(
 
 /**
  * Verify that the user owns the entity
-  */
+*/
 async function verifyEntityOwnership(
   entityType: EntityType,
   entityId: string,
@@ -260,7 +260,7 @@ async function verifyEntityOwnership(
 
 /**
  * Check if user has analytics access for entity type
-  */
+*/
 function checkAnalyticsAccess(tier: string, entityType: EntityType): boolean {
   const accessLevels = {
     free: [],
@@ -275,7 +275,7 @@ function checkAnalyticsAccess(tier: string, entityType: EntityType): boolean {
 
 /**
  * Fetch analytics data based on request parameters
-  */
+*/
 async function fetchAnalyticsData(
   entityType: EntityType,
   entityId: string,
@@ -348,7 +348,7 @@ async function fetchAnalyticsData(
 
 /**
  * Generate time breakdown for aggregates
-  */
+*/
 function generateTimeBreakdown(aggregates: any[], groupBy: 'day' | 'week' | 'month') {
   const breakdown = aggregates.reduce((acc, agg) => {
     let key: string;
@@ -385,7 +385,7 @@ function generateTimeBreakdown(aggregates: any[], groupBy: 'day' | 'week' | 'mon
 
 /**
  * Generate insights for premium+ users
-  */
+*/
 async function generateInsights(entityType: EntityType, entityId: string, analyticsData: any) {
   // Calculate performance score
   const performanceScore = calculatePerformanceScore(entityType, analyticsData);
@@ -409,7 +409,7 @@ async function generateInsights(entityType: EntityType, entityId: string, analyt
 
 /**
  * Calculate performance score based on entity type and data
-  */
+*/
 function calculatePerformanceScore(entityType: EntityType, data: any): number {
   let score = 50; // Base score
 
@@ -449,7 +449,7 @@ function calculatePerformanceScore(entityType: EntityType, data: any): number {
 
 /**
  * Generate recommendations based on analytics
-  */
+*/
 function generateRecommendations(entityType: EntityType, data: any, trends: any): string[] {
   const recommendations: string[] = [];
 
@@ -490,7 +490,7 @@ function generateRecommendations(entityType: EntityType, data: any, trends: any)
 
 /**
  * Get cache max age based on period
-  */
+*/
 function getCacheMaxAge(period: AggregationPeriod): number {
   const cacheSettings = {
     [AggregationPeriod.LAST_24_HOURS]: 300, // 5 minutes
@@ -505,7 +505,7 @@ function getCacheMaxAge(period: AggregationPeriod): number {
 
 /**
  * Get ISO week number
-  */
+*/
 function getWeekNumber(date: Date): number {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
   const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;

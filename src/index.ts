@@ -1,7 +1,7 @@
 /**
  * CVPlus Analytics Module - Comprehensive Analytics Platform
  * Advanced analytics, privacy compliance, A/B testing, and business intelligence
-  */
+*/
 
 // =============================================================================
 // CORE SERVICES

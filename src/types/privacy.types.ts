@@ -6,7 +6,7 @@ import { ConsentCategory } from './tracking.types';
 
 /**
  * Privacy regulation compliance types
-  */
+*/
 export enum PrivacyRegulation {
   GDPR = 'gdpr',
   CCPA = 'ccpa',
@@ -16,7 +16,7 @@ export enum PrivacyRegulation {
 
 /**
  * Data processing purposes
-  */
+*/
 export enum ProcessingPurpose {
   NECESSARY = 'necessary',
   ANALYTICS = 'analytics',
@@ -29,7 +29,7 @@ export enum ProcessingPurpose {
 
 /**
  * Data subject rights under GDPR
-  */
+*/
 export enum DataSubjectRight {
   ACCESS = 'access',              // Right to access personal data
   RECTIFICATION = 'rectification', // Right to rectify inaccurate data
@@ -42,7 +42,7 @@ export enum DataSubjectRight {
 
 /**
  * Consent mechanism types
-  */
+*/
 export enum ConsentMechanism {
   EXPLICIT = 'explicit',          // Explicit consent (opt-in)
   IMPLIED = 'implied',            // Implied consent
@@ -54,7 +54,7 @@ export enum ConsentMechanism {
 
 /**
  * User consent record
-  */
+*/
 export interface ConsentRecord {
   userId: string;
   anonymousId?: string;
@@ -75,7 +75,7 @@ export interface ConsentRecord {
 
 /**
  * Consent configuration
-  */
+*/
 export interface ConsentConfiguration {
   // Required consents (cannot be opted out)
   requiredCategories: ConsentCategory[];
@@ -109,7 +109,7 @@ export interface ConsentConfiguration {
 
 /**
  * Privacy settings per user
-  */
+*/
 export interface PrivacySettings {
   userId: string;
   consentGiven: Record<ConsentCategory, boolean>;
@@ -127,7 +127,7 @@ export interface PrivacySettings {
 
 /**
  * Data access request
-  */
+*/
 export interface DataAccessRequest {
   requestId: string;
   userId: string;
@@ -144,7 +144,7 @@ export interface DataAccessRequest {
 
 /**
  * Data portability request
-  */
+*/
 export interface DataPortabilityRequest {
   requestId: string;
   userId: string;
@@ -162,7 +162,7 @@ export interface DataPortabilityRequest {
 
 /**
  * Data deletion request
-  */
+*/
 export interface DataDeletionRequest {
   requestId: string;
   userId: string;
@@ -181,7 +181,7 @@ export interface DataDeletionRequest {
 
 /**
  * Privacy compliance audit record
-  */
+*/
 export interface PrivacyAuditRecord {
   auditId: string;
   timestamp: number;
@@ -197,7 +197,7 @@ export interface PrivacyAuditRecord {
 
 /**
  * Data minimization configuration
-  */
+*/
 export interface DataMinimizationConfig {
   // Fields to collect based on consent
   consentBasedFields: Record<ConsentCategory, string[]>;
@@ -225,7 +225,7 @@ export interface DataMinimizationConfig {
 
 /**
  * Cookie management configuration
-  */
+*/
 export interface CookieConfig {
   // Necessary cookies (always allowed)
   necessaryCookies: {
@@ -254,7 +254,7 @@ export interface CookieConfig {
 
 /**
  * Privacy compliance status
-  */
+*/
 export interface PrivacyComplianceStatus {
   gdprCompliant: boolean;
   ccpaCompliant: boolean;
@@ -267,7 +267,7 @@ export interface PrivacyComplianceStatus {
 
 /**
  * Privacy violation record
-  */
+*/
 export interface PrivacyViolation {
   violationId: string;
   timestamp: number;
@@ -285,7 +285,7 @@ export interface PrivacyViolation {
 
 /**
  * Data breach notification
-  */
+*/
 export interface DataBreachNotification {
   breachId: string;
   timestamp: number;
@@ -305,7 +305,7 @@ export interface DataBreachNotification {
 
 /**
  * Privacy impact assessment
-  */
+*/
 export interface PrivacyImpactAssessment {
   assessmentId: string;
   timestamp: number;
@@ -323,7 +323,7 @@ export interface PrivacyImpactAssessment {
 
 /**
  * Anonymization configuration
-  */
+*/
 export interface AnonymizationConfig {
   // Fields to anonymize
   fieldsToAnonymize: string[];
@@ -349,12 +349,12 @@ export interface AnonymizationConfig {
 
 /**
  * Export all privacy-related types from ConsentCategory in tracking.types.ts
-  */
+*/
 export type { ConsentCategory } from './tracking.types';
 
 /**
  * GDPR Article 30 record of processing activities
-  */
+*/
 export interface ProcessingActivityRecord {
   activityId: string;
   controllerName: string;
@@ -376,7 +376,7 @@ export interface ProcessingActivityRecord {
 
 /**
  * Cross-border data transfer configuration
-  */
+*/
 export interface DataTransferConfig {
   // Approved transfer mechanisms
   transferMechanisms: {

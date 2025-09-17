@@ -3,7 +3,7 @@
  * 
  * Extracts user behavior features including application patterns,
  * platform engagement, timing preferences, and optimization activities.
-  */
+*/
 
 import * as admin from 'firebase-admin';
 import { FeatureVector } from '../../../types/phase2-models';
@@ -14,7 +14,7 @@ export class BehaviorFeatureService {
 
   /**
    * Extract user behavior features
-    */
+  */
   async extractFeatures(userId: string): Promise<any> {
     
     const cacheKey = `behavior_${userId}`;
@@ -42,7 +42,7 @@ export class BehaviorFeatureService {
 
   /**
    * Health check for behavior feature service
-    */
+  */
   async healthCheck(): Promise<boolean> {
     try {
       // Test with a dummy user ID

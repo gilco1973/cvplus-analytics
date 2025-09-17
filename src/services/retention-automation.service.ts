@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @since Phase 3 - Analytics & Revenue Intelligence
-  */
+*/
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
@@ -93,7 +93,7 @@ export class RetentionAutomationService {
 
   /**
    * Execute comprehensive retention campaign for at-risk user
-    */
+  */
   async executeRetentionCampaign(atRiskUser: AtRiskUser): Promise<RetentionCampaign> {
     logger.info('Executing retention campaign', { userId: atRiskUser.userId });
 
@@ -151,7 +151,7 @@ export class RetentionAutomationService {
 
   /**
    * Process scheduled interventions
-    */
+  */
   async processScheduledInterventions(): Promise<void> {
     logger.info('Processing scheduled interventions');
 
@@ -175,7 +175,7 @@ export class RetentionAutomationService {
 
   /**
    * Select optimal interventions for user based on risk profile
-    */
+  */
   private async selectInterventions(user: AtRiskUser): Promise<RetentionIntervention[]> {
     const interventions: RetentionIntervention[] = [];
     let currentDelay = 0;
@@ -288,7 +288,7 @@ export class RetentionAutomationService {
 
   /**
    * Execute individual intervention
-    */
+  */
   private async executeIntervention(intervention: RetentionIntervention): Promise<void> {
     logger.info('Executing intervention', { 
       interventionId: intervention.id,
@@ -359,7 +359,7 @@ export class RetentionAutomationService {
 
   /**
    * Intervention execution methods
-    */
+  */
   private async schedulePersonalCall(intervention: RetentionIntervention): Promise<InterventionResult> {
     // Integration with CRM/calling system
     const success = await this.createCRMTask({
@@ -492,7 +492,7 @@ export class RetentionAutomationService {
 
   /**
    * Helper methods
-    */
+  */
   private determineCampaignType(user: AtRiskUser): 'proactive' | 'reactive' | 'winback' {
     if (user.riskScore > 0.8) return 'reactive';
     if (user.lastInteractionDate < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) return 'winback';

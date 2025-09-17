@@ -5,7 +5,7 @@
  * with comprehensive event tracking, aggregation, and real-time analytics.
  *
  * @fileoverview Analytics service for Firebase Functions with privacy compliance and insights
-  */
+*/
 
 import {
   getFirestore,
@@ -129,7 +129,7 @@ function invalidateCache(collection: string, id: string): void {
 
 /**
  * Track an analytics event
-  */
+*/
 export async function trackEvent(
   eventData: Omit<AnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>
 ): Promise<AnalyticsEvent> {
@@ -192,7 +192,7 @@ export async function trackEvent(
 
 /**
  * Get analytics event by ID
-  */
+*/
 export async function getAnalyticsEvent(id: string): Promise<AnalyticsEvent | null> {
   // Check cache first
   const cached = getCachedData(EVENTS_COLLECTION, id);
@@ -229,7 +229,7 @@ export async function getAnalyticsEvent(id: string): Promise<AnalyticsEvent | nu
 
 /**
  * Query analytics events
-  */
+*/
 export interface AnalyticsEventQueryOptions {
   entityType?: EntityType;
   entityId?: string;
@@ -340,7 +340,7 @@ export async function queryAnalyticsEvents(options: AnalyticsEventQueryOptions =
 
 /**
  * Create or update analytics aggregate
-  */
+*/
 export async function createOrUpdateAggregate(
   entityType: EntityType,
   entityId: string,
@@ -395,7 +395,7 @@ export async function createOrUpdateAggregate(
 
 /**
  * Calculate aggregate metrics from events
-  */
+*/
 function calculateAggregateMetrics(
   id: string,
   entityType: EntityType,
@@ -653,7 +653,7 @@ function calculateAggregateMetrics(
 
 /**
  * Update real-time analytics
-  */
+*/
 export async function updateRealTimeAnalytics(
   entityType: EntityType,
   entityId: string,
@@ -716,7 +716,7 @@ export async function updateRealTimeAnalytics(
 
 /**
  * Get real-time analytics
-  */
+*/
 export async function getRealTimeAnalytics(
   entityType: EntityType,
   entityId: string
@@ -745,7 +745,7 @@ export async function getRealTimeAnalytics(
 
 /**
  * Anonymize old events for privacy compliance
-  */
+*/
 export async function anonymizeOldEvents(): Promise<number> {
   const cutoffDate = Timestamp.fromMillis(Date.now() - (MAX_EVENT_AGE_DAYS * 24 * 60 * 60 * 1000));
   const db = getFirestore();
@@ -788,7 +788,7 @@ export async function anonymizeOldEvents(): Promise<number> {
 
 /**
  * Delete expired events
-  */
+*/
 export async function deleteExpiredEvents(): Promise<number> {
   const db = getFirestore();
   const eventsRef = collection(db, EVENTS_COLLECTION);
@@ -826,7 +826,7 @@ export async function deleteExpiredEvents(): Promise<number> {
 
 /**
  * Categorize referrer URL
-  */
+*/
 function categorizeReferrer(referrer: string): ReferrerCategory {
   try {
     const url = new URL(referrer);
@@ -850,7 +850,7 @@ function categorizeReferrer(referrer: string): ReferrerCategory {
 
 /**
  * Extract browser from user agent
-  */
+*/
 function extractBrowser(userAgent: string): string {
   const ua = userAgent.toLowerCase();
   if (ua.includes('chrome')) return 'Chrome';
@@ -863,7 +863,7 @@ function extractBrowser(userAgent: string): string {
 
 /**
  * Get country name from code
-  */
+*/
 function getCountryName(countryCode: string): string {
   const countryMap: Record<string, string> = {
     'US': 'United States',
@@ -883,7 +883,7 @@ function getCountryName(countryCode: string): string {
 
 /**
  * Clear all caches
-  */
+*/
 export function clearAnalyticsCache(): void {
   eventCache.clear();
   aggregateCache.clear();
@@ -892,7 +892,7 @@ export function clearAnalyticsCache(): void {
 
 /**
  * Get cache statistics
-  */
+*/
 export function getCacheStats(): {
   eventCacheSize: number;
   aggregateCacheSize: number;
@@ -905,7 +905,7 @@ export function getCacheStats(): {
 
 /**
  * Batch track multiple events
-  */
+*/
 export async function batchTrackEvents(
   eventsData: Array<Omit<AnalyticsEvent, 'id' | 'timestamp' | 'isAnonymized' | 'retentionExpiresAt'>>
 ): Promise<AnalyticsEvent[]> {

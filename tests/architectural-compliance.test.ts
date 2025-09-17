@@ -3,7 +3,7 @@
  * Validates that the dependency violation fix works correctly
  * Author: Gil Klainert
  * Date: August 29, 2025
-  */
+*/
 
 import { IFeatureRegistry, Feature } from '@cvplus/core';
 import { enhancedPremiumGuard, premiumFeatureGuard } from '../middleware/enhancedPremiumGuard';

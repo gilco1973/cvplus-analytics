@@ -4,7 +4,7 @@
 
 /**
  * Core event types for CVPlus analytics system
-  */
+*/
 export enum EventType {
   TRACK = 'track',          // User action tracking
   PAGE = 'page',            // Page view tracking
@@ -15,7 +15,7 @@ export enum EventType {
 
 /**
  * Event sources within the CVPlus ecosystem
-  */
+*/
 export enum EventSource {
   WEB = 'web',
   MOBILE = 'mobile',
@@ -26,7 +26,7 @@ export enum EventSource {
 
 /**
  * Privacy consent categories for GDPR compliance
-  */
+*/
 export enum ConsentCategory {
   NECESSARY = 'necessary',
   ANALYTICS = 'analytics',
@@ -37,7 +37,7 @@ export enum ConsentCategory {
 
 /**
  * Device information interface
-  */
+*/
 export interface DeviceInfo {
   type: 'desktop' | 'tablet' | 'mobile' | 'unknown';
   brand?: string;
@@ -49,7 +49,7 @@ export interface DeviceInfo {
 
 /**
  * Browser information interface
-  */
+*/
 export interface BrowserInfo {
   name: string;
   version: string;
@@ -61,7 +61,7 @@ export interface BrowserInfo {
 
 /**
  * Operating system information interface
-  */
+*/
 export interface OSInfo {
   name: string;
   version: string;
@@ -70,7 +70,7 @@ export interface OSInfo {
 
 /**
  * Geographic location information (privacy-compliant)
-  */
+*/
 export interface LocationInfo {
   country?: string;
   region?: string;
@@ -81,7 +81,7 @@ export interface LocationInfo {
 
 /**
  * Privacy metadata for GDPR compliance
-  */
+*/
 export interface PrivacyMetadata {
   consentGiven: boolean;
   consentCategories: ConsentCategory[];
@@ -95,7 +95,7 @@ export interface PrivacyMetadata {
 
 /**
  * Event context information
-  */
+*/
 export interface EventContext {
   // Browser/App Context
   userAgent: string;
@@ -131,7 +131,7 @@ export interface EventContext {
 
 /**
  * Event properties for different event types
-  */
+*/
 export interface EventProperties {
   // Page/Screen Events
   page?: {
@@ -193,7 +193,7 @@ export interface EventProperties {
 
 /**
  * Core analytics event interface
-  */
+*/
 export interface AnalyticsEvent {
   // Core Identifiers
   eventId: string;              // UUID v4
@@ -226,7 +226,7 @@ export interface AnalyticsEvent {
 
 /**
  * Event validation result
-  */
+*/
 export interface EventValidationResult {
   valid: boolean;
   errors: string[];
@@ -236,7 +236,7 @@ export interface EventValidationResult {
 
 /**
  * Event queue configuration
-  */
+*/
 export interface EventQueueConfig {
   maxSize: number;              // Maximum events in queue
   flushInterval: number;        // Auto-flush interval (ms)
@@ -248,7 +248,7 @@ export interface EventQueueConfig {
 
 /**
  * Event transport configuration
-  */
+*/
 export interface EventTransportConfig {
   endpoint: string;             // Analytics endpoint URL
   apiKey: string;               // API key for authentication
@@ -264,7 +264,7 @@ export interface EventTransportConfig {
 
 /**
  * Analytics SDK configuration
-  */
+*/
 export interface AnalyticsConfig {
   // Core Configuration
   apiKey: string;
@@ -308,7 +308,7 @@ export interface AnalyticsConfig {
 
 /**
  * Session information
-  */
+*/
 export interface SessionInfo {
   sessionId: string;
   userId?: string;
@@ -325,7 +325,7 @@ export interface SessionInfo {
 
 /**
  * User identification data
-  */
+*/
 export interface UserIdentification {
   userId: string;
   anonymousId?: string;
@@ -348,7 +348,7 @@ export interface UserIdentification {
 
 /**
  * Event processing result
-  */
+*/
 export interface EventProcessingResult {
   success: boolean;
   eventId: string;
@@ -361,7 +361,7 @@ export interface EventProcessingResult {
 
 /**
  * Event batch for bulk processing
-  */
+*/
 export interface EventBatch {
   batchId: string;
   events: AnalyticsEvent[];
@@ -377,7 +377,7 @@ export interface EventBatch {
 
 /**
  * Event filter for querying
-  */
+*/
 export interface EventFilter {
   eventNames?: string[];
   eventTypes?: EventType[];
@@ -396,7 +396,7 @@ export interface EventFilter {
 
 /**
  * CVPlus-specific event names (strongly typed)
-  */
+*/
 export const CVPlusEvents = {
   // CV Generation Events
   CV_GENERATION_STARTED: 'cv_generation_started',
@@ -442,7 +442,7 @@ export type CVPlusEventName = typeof CVPlusEvents[keyof typeof CVPlusEvents];
 
 /**
  * Event category taxonomy for organization
-  */
+*/
 export const EventCategories = {
   USER_ACTION: 'user_action',
   SYSTEM_EVENT: 'system_event',

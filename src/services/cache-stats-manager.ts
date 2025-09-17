@@ -6,7 +6,7 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
-  */
+*/
 
 import type { CacheStats, PerformanceMetrics } from '../types/analytics-errors';
 import type { MemoryManager } from './memory-manager';
@@ -24,7 +24,7 @@ export class CacheStatsManager {
 
   /**
    * Initialize default stats
-    */
+  */
   private initializeStats(): CacheStats {
     return {
       hitRate: 0,
@@ -39,7 +39,7 @@ export class CacheStatsManager {
 
   /**
    * Record cache hit from specific tier
-    */
+  */
   recordCacheHit(tier: 'memory' | 'redis' | 'firestore', latency: number): void {
     this.stats.totalRequests++;
     const hits = (this.stats.hitRate * (this.stats.totalRequests - 1)) + 1;
@@ -52,7 +52,7 @@ export class CacheStatsManager {
 
   /**
    * Record cache miss
-    */
+  */
   recordCacheMiss(latency: number): void {
     this.stats.totalRequests++;
     const misses = (this.stats.missRate * (this.stats.totalRequests - 1)) + 1;
@@ -65,7 +65,7 @@ export class CacheStatsManager {
 
   /**
    * Record eviction event
-    */
+  */
   recordEviction(count: number = 1): void {
     this.stats.evictions += count;
     this.updateStats();
@@ -73,7 +73,7 @@ export class CacheStatsManager {
 
   /**
    * Update current stats from memory manager
-    */
+  */
   updateStats(): void {
     this.stats.cacheSize = this.memoryManager.size();
     this.stats.memoryUsage = this.memoryManager.getMemoryUsage();
@@ -82,7 +82,7 @@ export class CacheStatsManager {
 
   /**
    * Get current statistics
-    */
+  */
   getStats(): CacheStats {
     this.updateStats(); // Ensure fresh stats
     return { ...this.stats };
@@ -90,14 +90,14 @@ export class CacheStatsManager {
 
   /**
    * Reset all statistics
-    */
+  */
   resetStats(): void {
     this.stats = this.initializeStats();
   }
 
   /**
    * Get performance metrics for monitoring
-    */
+  */
   getPerformanceMetrics(): Partial<PerformanceMetrics> {
     this.updateStats();
     return {
@@ -109,7 +109,7 @@ export class CacheStatsManager {
 
   /**
    * Start cleanup timer for expired entries
-    */
+  */
   private startCleanupTimer(): void {
     // Clean up expired entries every 5 minutes
     this.cleanupTimer = setInterval(() => {
@@ -119,7 +119,7 @@ export class CacheStatsManager {
 
   /**
    * Stop cleanup timer
-    */
+  */
   stopCleanupTimer(): void {
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
@@ -129,7 +129,7 @@ export class CacheStatsManager {
 
   /**
    * Perform cleanup of expired entries
-    */
+  */
   performCleanup(): void {
     const expiredKeys = this.memoryManager.cleanupExpired();
     
@@ -141,7 +141,7 @@ export class CacheStatsManager {
 
   /**
    * Check if cache system is healthy
-    */
+  */
   isHealthy(): boolean {
     this.updateStats();
     
@@ -153,7 +153,7 @@ export class CacheStatsManager {
 
   /**
    * Get health status details
-    */
+  */
   getHealthStatus(): {
     healthy: boolean;
     memoryUsage: number;
@@ -183,7 +183,7 @@ export class CacheStatsManager {
 
   /**
    * Cleanup resources
-    */
+  */
   dispose(): void {
     this.stopCleanupTimer();
   }

@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @created 2025-08-28
-  */
+*/
 
 import { logger } from 'firebase-functions';
 // TODO: Fix import paths after module dependencies are resolved
@@ -143,7 +143,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Generate comprehensive cache performance report
-    */
+  */
   async generatePerformanceReport(): Promise<CachePerformanceReport> {
     const startTime = Date.now();
     
@@ -253,7 +253,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Perform health check on all cache services
-    */
+  */
   async performHealthCheck(): Promise<CacheHealthStatus> {
     const startTime = Date.now();
     const issues: string[] = [];
@@ -329,7 +329,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Warm all cache services with common data
-    */
+  */
   async warmAllCaches(): Promise<{
     services: Record<string, { success: boolean; duration: number }>;
     totalDuration: number;
@@ -413,42 +413,42 @@ class CachePerformanceMonitorService {
 
   /**
    * Get performance metrics for pricing cache
-    */
+  */
   private async getPricingMetrics() {
     return pricingCacheService.getMetrics();
   }
 
   /**
    * Get performance metrics for subscription cache
-    */
+  */
   private async getSubscriptionMetrics() {
     return subscriptionCacheService.getMetrics();
   }
 
   /**
    * Get performance metrics for feature access cache
-    */
+  */
   private async getFeatureAccessMetrics() {
     return featureAccessCacheService.getMetrics();
   }
 
   /**
    * Get performance metrics for usage batch cache
-    */
+  */
   private async getUsageBatchMetrics() {
     return usageBatchCacheService.getMetrics();
   }
 
   /**
    * Get performance metrics for analytics cache
-    */
+  */
   private async getAnalyticsMetrics() {
     return analyticsCacheService.getMetrics();
   }
 
   /**
    * Get Redis performance statistics
-    */
+  */
   private async getRedisStats() {
     const stats = cacheService.getStats();
     return {
@@ -461,7 +461,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Calculate overall performance metrics
-    */
+  */
   private calculateOverallMetrics(metrics: any) {
     const services = [metrics.pricing, metrics.subscription, metrics.featureAccess, metrics.analytics];
     const totalRequests = services.reduce((sum, s) => sum + (s.requests || 0), 0);
@@ -495,7 +495,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Generate performance alerts
-    */
+  */
   private generateAlerts(metrics: any): CacheAlert[] {
     const alerts: CacheAlert[] = [];
     const now = new Date();
@@ -590,7 +590,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Generate optimization recommendations
-    */
+  */
   private generateRecommendations(metrics: any): CacheRecommendation[] {
     const recommendations: CacheRecommendation[] = [];
 
@@ -649,7 +649,7 @@ class CachePerformanceMonitorService {
 
   /**
    * Calculate health score based on issues
-    */
+  */
   private calculateHealthScore(issueCount: number, redisHealthy: boolean): number {
     let score = 100;
     

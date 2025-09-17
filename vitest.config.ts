@@ -13,7 +13,7 @@ export default defineConfig({
         'node_modules/**',
         'dist/**',
         '**/* .d.ts',
-  */
+*/
         '**/*.config.*',
         'tests/**',
         'src*/*.test.*',

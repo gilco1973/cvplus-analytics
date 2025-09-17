@@ -5,7 +5,7 @@
  * 
  * Predicts the probability of getting an interview based on CV-job matching,
  * market conditions, and user behavior patterns.
-  */
+*/
 
 import { FeatureVector } from '../../../types/phase2-models';
 
@@ -15,7 +15,7 @@ export class InterviewPredictor {
   
   /**
    * Predict interview probability based on feature vector
-    */
+  */
   async predict(features: FeatureVector): Promise<number> {
     try {
       
@@ -38,7 +38,7 @@ export class InterviewPredictor {
 
   /**
    * Health check for interview predictor
-    */
+  */
   async healthCheck(): Promise<boolean> {
     try {
       // Create test feature vector

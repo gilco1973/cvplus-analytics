@@ -7,7 +7,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @since Phase 3 - Analytics & Revenue Intelligence
-  */
+*/
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
@@ -75,7 +75,7 @@ export class CohortAnalysisService {
 
   /**
    * Generate comprehensive cohort analysis
-    */
+  */
   async generateCohortAnalysis(params: CohortAnalysisParams): Promise<CohortMetrics[]> {
     const cacheKey = `cohort_${params.cohortType}_${params.metricType}_${params.startDate.getTime()}_${params.endDate.getTime()}`;
     
@@ -116,7 +116,7 @@ export class CohortAnalysisService {
 
   /**
    * Analyze a specific cohort
-    */
+  */
   private async analyzeCohort(
     cohortStart: Date, 
     params: CohortAnalysisParams
@@ -150,7 +150,7 @@ export class CohortAnalysisService {
 
   /**
    * Analyze cohort periods (monthly, weekly, etc.)
-    */
+  */
   private async analyzeCohortPeriods(
     cohortUsers: UserCohortData[],
     cohortStart: Date,
@@ -183,7 +183,7 @@ export class CohortAnalysisService {
 
   /**
    * Analyze a specific period within a cohort
-    */
+  */
   private async analyzePeriod(
     cohortUsers: UserCohortData[],
     periodStart: Date,
@@ -237,7 +237,7 @@ export class CohortAnalysisService {
 
   /**
    * Compare two cohorts for A/B testing or trend analysis
-    */
+  */
   async compareCohorts(
     cohortA: string,
     cohortB: string,
@@ -285,7 +285,7 @@ export class CohortAnalysisService {
 
   /**
    * Analyze cohort trends over time
-    */
+  */
   async analyzeCohortTrends(
     params: CohortAnalysisParams,
     lookbackPeriods: number = 6
@@ -342,7 +342,7 @@ export class CohortAnalysisService {
 
   /**
    * Helper methods
-    */
+  */
   private generateCohortPeriods(params: CohortAnalysisParams): Date[] {
     const periods: Date[] = [];
     const current = new Date(params.startDate);

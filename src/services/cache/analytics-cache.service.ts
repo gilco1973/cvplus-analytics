@@ -8,7 +8,7 @@
  * @author Gil Klainert
  * @version 1.0.0
  * @created 2025-08-28
-  */
+*/
 
 import { logger } from 'firebase-functions';
 import { cacheService } from './cache.service';
@@ -86,7 +86,7 @@ class AnalyticsCacheService {
 
   /**
    * Execute analytics query with caching
-    */
+  */
   async executeQuery(query: AnalyticsQuery): Promise<AnalyticsResult> {
     const startTime = Date.now();
     this.metrics.queries++;
@@ -159,7 +159,7 @@ class AnalyticsCacheService {
 
   /**
    * Execute multiple analytics queries in batch
-    */
+  */
   async executeBatchQueries(queries: AnalyticsQuery[]): Promise<Record<string, AnalyticsResult>> {
     const startTime = Date.now();
     
@@ -258,7 +258,7 @@ class AnalyticsCacheService {
 
   /**
    * Get dashboard summary (most frequently accessed analytics)
-    */
+  */
   async getDashboardSummary(userId?: string): Promise<AnalyticsResult> {
     const query: AnalyticsQuery = {
       type: 'dashboard_summary',
@@ -271,7 +271,7 @@ class AnalyticsCacheService {
 
   /**
    * Invalidate analytics cache by type or pattern
-    */
+  */
   async invalidateCache(
     type?: AnalyticsQueryType, 
     userId?: string
@@ -314,7 +314,7 @@ class AnalyticsCacheService {
 
   /**
    * Pre-warm analytics cache for common queries
-    */
+  */
   async warmCache(queries?: AnalyticsQuery[]): Promise<void> {
     const commonQueries: AnalyticsQuery[] = queries || [
       { type: 'dashboard_summary', params: {} },
@@ -345,7 +345,7 @@ class AnalyticsCacheService {
 
   /**
    * Execute actual analytics query (fallback when not cached)
-    */
+  */
   private async executeAnalyticsQuery(query: AnalyticsQuery): Promise<{
     data: any;
     generatedAt: Date;
@@ -428,7 +428,7 @@ class AnalyticsCacheService {
 
   /**
    * Build cache key for analytics query
-    */
+  */
   private buildQueryKey(query: AnalyticsQuery): string {
     // Create a hash of the query parameters for consistent keys
     const paramsHash = this.hashObject(query.params);
@@ -449,7 +449,7 @@ class AnalyticsCacheService {
 
   /**
    * Parse cache key back to query (simplified - for basic use cases)
-    */
+  */
   private parseKeyToQuery(key: string): AnalyticsQuery | null {
     try {
       const parts = key.split(':');
@@ -468,7 +468,7 @@ class AnalyticsCacheService {
 
   /**
    * Hash object for consistent cache keys
-    */
+  */
   private hashObject(obj: any): string {
     return crypto
       .createHash('md5')
@@ -538,7 +538,7 @@ class AnalyticsCacheService {
 
   /**
    * Update average response time metric
-    */
+  */
   private updateAverageResponseTime(responseTime: number): void {
     if (this.metrics.queries === 1) {
       this.metrics.averageResponseTime = responseTime;
@@ -550,7 +550,7 @@ class AnalyticsCacheService {
 
   /**
    * Update average query execution time
-    */
+  */
   private updateAverageQueryTime(queryTime: number): void {
     if (this.metrics.cacheMisses === 1) {
       this.metrics.averageQueryTime = queryTime;
@@ -562,7 +562,7 @@ class AnalyticsCacheService {
 
   /**
    * Update data freshness metric
-    */
+  */
   private updateDataFreshness(freshness: number): void {
     this.metrics.dataFreshness = 
       (this.metrics.dataFreshness * 0.9) + (freshness * 0.1);
@@ -570,14 +570,14 @@ class AnalyticsCacheService {
 
   /**
    * Get analytics cache performance metrics
-    */
+  */
   getMetrics(): AnalyticsCacheMetrics {
     return { ...this.metrics };
   }
 
   /**
    * Get cache hit rate
-    */
+  */
   getHitRate(): number {
     if (this.metrics.queries === 0) return 0;
     return this.metrics.cacheHits / this.metrics.queries;
@@ -585,7 +585,7 @@ class AnalyticsCacheService {
 
   /**
    * Reset metrics (for testing)
-    */
+  */
   resetMetrics(): void {
     this.metrics = {
       queries: 0,

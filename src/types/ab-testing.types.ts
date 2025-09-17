@@ -4,7 +4,7 @@
 
 /**
  * Experiment status enum
-  */
+*/
 export enum ExperimentStatus {
   DRAFT = 'draft',
   SCHEDULED = 'scheduled',
@@ -17,7 +17,7 @@ export enum ExperimentStatus {
 
 /**
  * Experiment type enum
-  */
+*/
 export enum ExperimentType {
   AB_TEST = 'ab_test',
   MULTIVARIATE = 'multivariate',
@@ -27,7 +27,7 @@ export enum ExperimentType {
 
 /**
  * Statistical significance method
-  */
+*/
 export enum StatisticalMethod {
   FREQUENTIST = 'frequentist',
   BAYESIAN = 'bayesian',
@@ -36,7 +36,7 @@ export enum StatisticalMethod {
 
 /**
  * Metric type for experiment goals
-  */
+*/
 export enum MetricType {
   CONVERSION = 'conversion',
   REVENUE = 'revenue',
@@ -47,7 +47,7 @@ export enum MetricType {
 
 /**
  * Traffic allocation strategy
-  */
+*/
 export enum TrafficAllocation {
   RANDOM = 'random',
   WEIGHTED = 'weighted',
@@ -57,7 +57,7 @@ export enum TrafficAllocation {
 
 /**
  * Experiment variant configuration
-  */
+*/
 export interface ExperimentVariant {
   variantId: string;
   name: string;
@@ -71,7 +71,7 @@ export interface ExperimentVariant {
 
 /**
  * Experiment goal/metric definition
-  */
+*/
 export interface ExperimentGoal {
   goalId: string;
   name: string;
@@ -101,7 +101,7 @@ export interface ExperimentGoal {
 
 /**
  * User segmentation for experiment targeting
-  */
+*/
 export interface ExperimentSegmentation {
   segmentId: string;
   name: string;
@@ -120,7 +120,7 @@ export interface ExperimentSegmentation {
 
 /**
  * Segment criteria for user targeting
-  */
+*/
 export interface SegmentCriteria {
   property: string;
   operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'greater_than' | 'less_than' | 'in' | 'not_in' | 'exists' | 'not_exists';
@@ -130,7 +130,7 @@ export interface SegmentCriteria {
 
 /**
  * Main experiment configuration
-  */
+*/
 export interface Experiment {
   // Basic Information
   experimentId: string;
@@ -181,7 +181,7 @@ export interface Experiment {
 
 /**
  * Sample size calculation result
-  */
+*/
 export interface SampleSizeCalculation {
   calculationId: string;
   timestamp: number;
@@ -203,7 +203,7 @@ export interface SampleSizeCalculation {
 
 /**
  * Pre-test checklist item
-  */
+*/
 export interface PreTestChecklistItem {
   itemId: string;
   description: string;
@@ -217,7 +217,7 @@ export interface PreTestChecklistItem {
 
 /**
  * Variant assignment for a user
-  */
+*/
 export interface VariantAssignment {
   userId: string;
   experimentId: string;
@@ -241,7 +241,7 @@ export interface VariantAssignment {
 
 /**
  * Experiment results and analysis
-  */
+*/
 export interface ExperimentResults {
   experimentId: string;
   generatedAt: number;
@@ -265,7 +265,7 @@ export interface ExperimentResults {
 
 /**
  * Results for a specific variant
-  */
+*/
 export interface VariantResults {
   variantId: string;
   variantName: string;
@@ -291,7 +291,7 @@ export interface VariantResults {
 
 /**
  * Results for a specific goal
-  */
+*/
 export interface GoalResults {
   goalId: string;
   goalName: string;
@@ -315,7 +315,7 @@ export interface GoalResults {
 
 /**
  * Statistical analysis results
-  */
+*/
 export interface StatisticalAnalysis {
   method: StatisticalMethod;
   
@@ -348,7 +348,7 @@ export interface StatisticalAnalysis {
 
 /**
  * Bayesian distribution parameters
-  */
+*/
 export interface BayesianDistribution {
   distributionType: 'beta' | 'gamma' | 'normal';
   parameters: Record<string, number>;
@@ -357,7 +357,7 @@ export interface BayesianDistribution {
 
 /**
  * Experiment recommendation
-  */
+*/
 export interface ExperimentRecommendation {
   type: 'launch' | 'continue' | 'stop' | 'extend' | 'investigate';
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -370,7 +370,7 @@ export interface ExperimentRecommendation {
 
 /**
  * Data quality metrics for experiments
-  */
+*/
 export interface DataQualityMetrics {
   // Sample quality
   sampleRatioMismatch: boolean;
@@ -394,7 +394,7 @@ export interface DataQualityMetrics {
 
 /**
  * Bias detection results
-  */
+*/
 export interface BiasDetection {
   detected: boolean;
   severity: 'low' | 'medium' | 'high';
@@ -405,7 +405,7 @@ export interface BiasDetection {
 
 /**
  * Feature flag configuration
-  */
+*/
 export interface FeatureFlag {
   flagId: string;
   name: string;
@@ -440,7 +440,7 @@ export interface FeatureFlag {
 
 /**
  * Feature flag variation
-  */
+*/
 export interface FeatureFlagVariation {
   variationId: string;
   name: string;
@@ -451,7 +451,7 @@ export interface FeatureFlagVariation {
 
 /**
  * Feature flag targeting rule
-  */
+*/
 export interface FeatureFlagRule {
   ruleId: string;
   description: string;
@@ -462,7 +462,7 @@ export interface FeatureFlagRule {
 
 /**
  * Feature flag condition
-  */
+*/
 export interface FeatureFlagCondition {
   property: string;
   operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than' | 'in' | 'not_in' | 'matches_regex';
@@ -471,7 +471,7 @@ export interface FeatureFlagCondition {
 
 /**
  * Feature flag dependency
-  */
+*/
 export interface FeatureFlagDependency {
   dependsOnFlag: string;
   requiredVariation?: string;
@@ -480,7 +480,7 @@ export interface FeatureFlagDependency {
 
 /**
  * A/B test event for tracking
-  */
+*/
 export interface ABTestEvent {
   eventId: string;
   timestamp: number;
@@ -505,7 +505,7 @@ export interface ABTestEvent {
 
 /**
  * Multivariate test configuration
-  */
+*/
 export interface MultivariateTest extends Omit<Experiment, 'type' | 'variants'> {
   type: ExperimentType.MULTIVARIATE;
   factors: MultivariateTestFactor[];
@@ -514,7 +514,7 @@ export interface MultivariateTest extends Omit<Experiment, 'type' | 'variants'> 
 
 /**
  * Multivariate test factor
-  */
+*/
 export interface MultivariateTestFactor {
   factorId: string;
   name: string;
@@ -524,7 +524,7 @@ export interface MultivariateTestFactor {
 
 /**
  * Multivariate test level (variation within a factor)
-  */
+*/
 export interface MultivariateTestLevel {
   levelId: string;
   name: string;
@@ -534,7 +534,7 @@ export interface MultivariateTestLevel {
 
 /**
  * Sequential testing configuration for early stopping
-  */
+*/
 export interface SequentialTestConfig {
   enabled: boolean;
   method: 'group_sequential' | 'always_valid_inference' | 'mixture_sequential';
@@ -557,7 +557,7 @@ export interface SequentialTestConfig {
 
 /**
  * Experiment archive record
-  */
+*/
 export interface ExperimentArchive {
   experimentId: string;
   archivedAt: number;

@@ -7,7 +7,7 @@
  * 
  * @author CVPlus Analytics Team
  * @version 1.0.0
-  */
+*/
 
 import { BaseService, ServiceConfig } from '../shared/base-service';
 import { UserOutcome, OutcomeEvent } from '../types/user-outcomes';
@@ -16,7 +16,7 @@ import { Logger } from '../shared/logger';
 
 /**
  * Outcome tracking configuration interface
-  */
+*/
 export interface OutcomeTrackingConfig extends ServiceConfig {
   enableFollowUpReminders: boolean;
   followUpIntervalDays: number[];
@@ -31,7 +31,7 @@ export interface OutcomeTrackingConfig extends ServiceConfig {
 
 /**
  * Outcome analytics and insights interface
-  */
+*/
 export interface OutcomeAnalytics {
   totalOutcomes: number;
   successRate: number;
@@ -57,7 +57,7 @@ export interface OutcomeAnalytics {
 
 /**
  * Follow-up reminder interface
-  */
+*/
 export interface FollowUpReminder {
   reminderId: string;
   userId: string;
@@ -72,7 +72,7 @@ export interface FollowUpReminder {
 
 /**
  * Comprehensive outcome tracking service
-  */
+*/
 export class OutcomeTrackingService extends BaseService {
   private logger: Logger;
   private config: OutcomeTrackingConfig;
@@ -100,7 +100,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Process and enrich outcome data before storage
-    */
+  */
   async processOutcomeData(
     rawOutcome: Partial<UserOutcome>,
     userId: string
@@ -169,7 +169,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Create initial timeline entry for new outcome
-    */
+  */
   private createInitialTimeline(
     outcomeId: string,
     userId: string,
@@ -196,7 +196,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Enrich outcome with additional analytics and context
-    */
+  */
   private async enrichOutcomeWithAnalytics(outcome: UserOutcome): Promise<void> {
     try {
       // Add industry benchmarking data
@@ -223,7 +223,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Get industry benchmark data
-    */
+  */
   private async getIndustryBenchmark(industry: string): Promise<any> {
     // Implementation would query historical data for industry benchmarks
     // This is a placeholder for the actual implementation
@@ -236,7 +236,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Calculate predicted success based on historical data and ML models
-    */
+  */
   private async calculatePredictedSuccess(outcome: UserOutcome): Promise<number> {
     // Implementation would use ML models to predict success probability
     // This is a placeholder for the actual implementation
@@ -257,7 +257,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Generate user outcome analytics and insights
-    */
+  */
   async generateOutcomeAnalytics(
     userId: string,
     dateRange?: { start: Date; end: Date }
@@ -286,7 +286,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Schedule follow-up reminders for outcomes
-    */
+  */
   async scheduleFollowUpReminders(outcome: UserOutcome): Promise<FollowUpReminder[]> {
     if (!this.config.enableFollowUpReminders) {
       return [];
@@ -323,7 +323,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Generate contextual reminder message
-    */
+  */
   private generateReminderMessage(outcome: UserOutcome, daysSince: number): string {
     const company = outcome.jobDetails.company;
     const position = outcome.jobDetails.position;
@@ -339,7 +339,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Validate outcome data for ML training
-    */
+  */
   async validateOutcomeForML(outcome: UserOutcome): Promise<boolean> {
     if (!this.config.enableMLDataCollection) {
       return false;
@@ -376,7 +376,7 @@ export class OutcomeTrackingService extends BaseService {
 
   /**
    * Helper method to get nested object values
-    */
+  */
   private getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   }

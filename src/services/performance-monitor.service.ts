@@ -7,7 +7,7 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
-  */
+*/
 
 import * as admin from 'firebase-admin';
 import config from '../config/environment';
@@ -132,7 +132,7 @@ export class PerformanceMonitorService {
 
   /**
    * Record video generation metrics
-    */
+  */
   async recordGenerationMetrics(
     generationId: string,
     userId: string,
@@ -208,7 +208,7 @@ export class PerformanceMonitorService {
 
   /**
    * Update generation metrics with completion data
-    */
+  */
   async updateGenerationMetrics(
     generationId: string,
     result: VideoGenerationResult,
@@ -284,7 +284,7 @@ export class PerformanceMonitorService {
 
   /**
    * Calculate and store system performance metrics
-    */
+  */
   async calculateSystemMetrics(period: '1m' | '5m' | '15m' | '1h' | '24h'): Promise<SystemPerformanceMetrics> {
     try {
       const now = new Date();
@@ -378,7 +378,7 @@ export class PerformanceMonitorService {
 
   /**
    * Get performance trends over time
-    */
+  */
   async getPerformanceTrends(
     hours: number = 24,
     granularity: '1h' | '6h' | '24h' = '1h'
@@ -404,7 +404,7 @@ export class PerformanceMonitorService {
 
   /**
    * Check for performance alerts and trigger if necessary
-    */
+  */
   private async checkPerformanceAlerts(
     generationId: string, 
     metrics: Partial<VideoGenerationMetrics>,
@@ -455,7 +455,7 @@ export class PerformanceMonitorService {
 
   /**
    * Record analytics event
-    */
+  */
   private async recordAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
     try {
       await this.firestore
@@ -468,7 +468,7 @@ export class PerformanceMonitorService {
 
   /**
    * Utility methods
-    */
+  */
   private getPeriodStartTime(endTime: Date, period: string): Date {
     const periodMinutes = {
       '1m': 1,

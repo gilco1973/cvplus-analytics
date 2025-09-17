@@ -5,7 +5,7 @@
  * 
  * Core ML framework for predicting job application success.
  * Implements ensemble models with feature engineering and caching.
-  */
+*/
 
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -83,7 +83,7 @@ export class PredictionModelService {
 
   /**
    * Generate comprehensive success prediction
-    */
+  */
   async predictSuccess(request: PredictionRequest): Promise<SuccessPrediction> {
     try {
       // Check cache first
@@ -171,7 +171,7 @@ export class PredictionModelService {
 
   /**
    * Extract comprehensive feature vector from request data
-    */
+  */
   private async extractFeatures(request: PredictionRequest): Promise<FeatureVector> {
     const { cvData, jobData, userContext } = request;
     
@@ -243,7 +243,7 @@ export class PredictionModelService {
 
   /**
    * Generate ML model predictions using ensemble approach
-    */
+  */
   private async generatePredictions(features: FeatureVector, request: PredictionRequest): Promise<ModelPredictionResult> {
     try {
       // In production, this would call actual ML models
@@ -296,7 +296,7 @@ export class PredictionModelService {
 
   /**
    * Calculate interview probability using heuristic model
-    */
+  */
   private async calculateInterviewProbability(features: Record<string, number>): Promise<number> {
     let score = 0.5; // Base probability
     
@@ -321,7 +321,7 @@ export class PredictionModelService {
 
   /**
    * Calculate offer probability given interview probability
-    */
+  */
   private async calculateOfferProbability(features: Record<string, number>, interviewProb: number): Promise<number> {
     let score = interviewProb * 0.6; // Base: 60% conversion from interview
     
@@ -348,7 +348,7 @@ export class PredictionModelService {
 
   /**
    * Calculate model confidence based on feature quality
-    */
+  */
   private calculateModelConfidence(features: Record<string, number>, predictions: any): any {
     const dataQuality = this.calculateDataQuality(features);
     const predictionConsistency = this.calculatePredictionConsistency(predictions);
@@ -364,7 +364,7 @@ export class PredictionModelService {
 
   /**
    * Generate personalized recommendations
-    */
+  */
   private async generateRecommendations(
     features: FeatureVector, 
     predictions: ModelPredictionResult, 
@@ -482,7 +482,7 @@ export class PredictionModelService {
 
   /**
    * Predict salary range for the position
-    */
+  */
   private async predictSalary(features: FeatureVector, request: PredictionRequest): Promise<SuccessPrediction['salaryPrediction']> {
     // Get market salary data
     const marketData = await this.getMarketSalaryData(request.jobData.title, request.jobData.location, request.jobData.industry);
@@ -515,7 +515,7 @@ export class PredictionModelService {
 
   /**
    * Predict time to hire for this position
-    */
+  */
   private async predictTimeToHire(features: FeatureVector, request: PredictionRequest): Promise<SuccessPrediction['timeToHire']> {
     const baseTime = await this.getAverageHiringTime(request.jobData.industry, request.jobData.company);
     

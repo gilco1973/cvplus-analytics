@@ -1,7 +1,7 @@
 /**
  * CVPlus Analytics Types
  * Comprehensive analytics type definitions
-  */
+*/
 
 // Re-export all analytics types for backwards compatibility
 export type {

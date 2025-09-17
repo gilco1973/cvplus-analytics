@@ -5,7 +5,7 @@
  * 
  * @version 2.0.0
  * @author Gil Klainert
-  */
+*/
 
 import OpenAI from 'openai';
 import { admin, db } from '@cvplus/core';
@@ -20,7 +20,7 @@ import { vectorDatabase, VectorInput, SearchOptions } from './vector-database.se
 
 /**
  * Embedding generation configuration
-  */
+*/
 export interface EmbeddingConfig {
   model: 'text-embedding-ada-002';
   maxTokens: number;
@@ -33,7 +33,7 @@ export interface EmbeddingConfig {
 
 /**
  * Chunking strategy options
-  */
+*/
 export interface ChunkingOptions {
   strategy: 'semantic' | 'fixed-size' | 'sliding-window';
   maxTokens: number;
@@ -44,7 +44,7 @@ export interface ChunkingOptions {
 
 /**
  * Similarity search result
-  */
+*/
 export interface SimilarityResult {
   embedding: RAGEmbedding;
   similarity: number;
@@ -54,7 +54,7 @@ export interface SimilarityResult {
 
 /**
  * CV embedding processing result
-  */
+*/
 export interface CVEmbeddingResult {
   embeddings: RAGEmbedding[];
   totalChunks: number;
@@ -65,7 +65,7 @@ export interface CVEmbeddingResult {
 
 /**
  * HuggingFace export configuration
-  */
+*/
 export interface HuggingFaceExport {
   embeddings: RAGEmbedding[];
   model: string;
@@ -76,7 +76,7 @@ export interface HuggingFaceExport {
 
 /**
  * Production embedding service for CVPlus RAG system
-  */
+*/
 export class EmbeddingService {
   private openai: OpenAI | null = null;
   private db = db;
@@ -97,7 +97,7 @@ export class EmbeddingService {
 
   /**
    * Initialize OpenAI client with error handling
-    */
+  */
   private getOpenAI(): OpenAI {
     if (!this.openai) {
       const apiKey = config.rag?.openaiApiKey || process.env.OPENAI_API_KEY || '';
@@ -116,7 +116,7 @@ export class EmbeddingService {
 
   /**
    * Generate embeddings for batch of texts
-    */
+  */
   async generateEmbeddings(texts: string[], options?: Partial<EmbeddingConfig>): Promise<RAGEmbedding[]> {
     const startTime = Date.now();
     const effectiveConfig = { ...this.config, ...options };
@@ -154,7 +154,7 @@ export class EmbeddingService {
 
   /**
    * Generate single embedding with metadata
-    */
+  */
   async generateSingleEmbedding(text: string, metadata?: EmbeddingMetadata): Promise<RAGEmbedding> {
     try {
       const response = await this.getOpenAI().embeddings.create({
@@ -190,7 +190,7 @@ export class EmbeddingService {
 
   /**
    * Intelligent text chunking
-    */
+  */
   chunkText(text: string, options?: Partial<ChunkingOptions>): ChunkResult {
     const config = {
       strategy: 'semantic' as const,
@@ -215,7 +215,7 @@ export class EmbeddingService {
 
   /**
    * Preprocess text for embedding generation
-    */
+  */
   preprocessText(text: string, options?: { removeExtra?: boolean; normalizeSpacing?: boolean }): string {
     const config = { removeExtra: true, normalizeSpacing: true, ...options };
     let processed = text.trim();
@@ -235,7 +235,7 @@ export class EmbeddingService {
 
   /**
    * Calculate cosine similarity between vectors
-    */
+  */
   cosineSimilarity(vector1: number[], vector2: number[]): number {
     if (vector1.length !== vector2.length) {
       throw new Error('Vectors must have same length for cosine similarity');
@@ -259,7 +259,7 @@ export class EmbeddingService {
 
   /**
    * Search for similar embeddings
-    */
+  */
   async searchSimilar(query: string, embeddings: RAGEmbedding[], topK = 5): Promise<SimilarityResult[]> {
     try {
       const queryEmbedding = await this.generateSingleEmbedding(query);
@@ -292,7 +292,7 @@ export class EmbeddingService {
 
   /**
    * Enhanced search using vector database for better performance
-    */
+  */
   private async searchWithVectorDatabase(
     queryVector: number[], 
     embeddings: RAGEmbedding[], 
@@ -359,7 +359,7 @@ export class EmbeddingService {
 
   /**
    * Store embeddings in vector database for persistent search
-    */
+  */
   async storeInVectorDatabase(embeddings: RAGEmbedding[], namespace: string): Promise<string[]> {
     try {
       logger.info('[EMBEDDING-SERVICE] Storing embeddings in vector database', {
@@ -400,7 +400,7 @@ export class EmbeddingService {
 
   /**
    * Search embeddings directly from vector database
-    */
+  */
   async searchVectorDatabase(
     query: string, 
     namespace?: string,
@@ -454,7 +454,7 @@ export class EmbeddingService {
 
   /**
    * Extract keywords from content for enhanced search
-    */
+  */
   private extractKeywords(content: string): string[] {
     // Simple keyword extraction - could be enhanced with NLP
     const words = content.toLowerCase()
@@ -477,7 +477,7 @@ export class EmbeddingService {
 
   /**
    * Optimize for HuggingFace deployment
-    */
+  */
   optimizeForHuggingFace(): HuggingFaceExport {
     return {
       embeddings: [],
@@ -490,7 +490,7 @@ export class EmbeddingService {
 
   /**
    * Process CV data into embeddings
-    */
+  */
   async processCV(cvData: ParsedCV): Promise<CVEmbeddingResult> {
     const startTime = Date.now();
     const sectionsProcessed: string[] = [];
@@ -548,7 +548,7 @@ export class EmbeddingService {
 
   /**
    * Create CV chunks (wrapper for processCV)
-    */
+  */
   async createCVChunks(parsedCV: ParsedCV, jobId: string): Promise<any[]> {
     try {
       const result = await this.processCV(parsedCV);
@@ -575,7 +575,7 @@ export class EmbeddingService {
 
   /**
    * Store embeddings in vector database
-    */
+  */
   async storeEmbeddings(chunks: any[], vectorNamespace: string, jobId: string): Promise<void> {
     try {
       logger.info('[EMBEDDING-SERVICE] Storing embeddings in vector database', {
@@ -641,7 +641,7 @@ export class EmbeddingService {
 
   /**
    * Query similar chunks using vector database
-    */
+  */
   async querySimilarChunks(query: string, vectorNamespace: string, topK = 5): Promise<any[]> {
     try {
       logger.info('[EMBEDDING-SERVICE] Querying similar chunks from vector database', {
@@ -673,7 +673,7 @@ export class EmbeddingService {
 
   /**
    * Delete embeddings from vector database
-    */
+  */
   async deleteEmbeddings(vectorNamespace: string, jobId: string): Promise<void> {
     try {
       logger.info('[EMBEDDING-SERVICE] Deleting embeddings from vector database', {

@@ -28,7 +28,7 @@ import {
 /**
  * Main CVPlus Analytics SDK Class
  * Handles event tracking, privacy management, and user session management
-  */
+*/
 export class CVPlusAnalyticsSDK {
   private config: AnalyticsConfig;
   private sessionManager: SessionManager;
@@ -47,7 +47,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Initialize the analytics SDK
-    */
+  */
   async initialize(): Promise<void> {
     try {
       // Check privacy consent first
@@ -98,7 +98,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Track a custom event
-    */
+  */
   async track(eventName: string, properties: EventProperties = {}): Promise<void> {
     if (!this.initialized) {
       console.warn('[CVPlus Analytics] SDK not initialized, call initialize() first');
@@ -136,7 +136,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Track a page view
-    */
+  */
   async page(category?: string, name?: string, properties: EventProperties = {}): Promise<void> {
     if (!this.initialized) {
       console.warn('[CVPlus Analytics] SDK not initialized');
@@ -183,7 +183,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Identify a user
-    */
+  */
   async identify(userId: string, traits: UserIdentification['traits'] = {}): Promise<void> {
     if (!this.initialized) {
       console.warn('[CVPlus Analytics] SDK not initialized');
@@ -226,7 +226,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Track CVPlus-specific events with enhanced context
-    */
+  */
   async trackCVPlusEvent(eventName: keyof typeof CVPlusEvents, properties: EventProperties = {}): Promise<void> {
     const cvPlusEventName = CVPlusEvents[eventName];
     
@@ -245,7 +245,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Update privacy consent
-    */
+  */
   async updateConsent(consent: Record<ConsentCategory, boolean>): Promise<void> {
     await this.privacyManager.updateConsent(consent);
     
@@ -268,35 +268,35 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Request user data (GDPR Article 15 - Right of Access)
-    */
+  */
   async requestUserData(): Promise<DataAccessRequest> {
     return await this.privacyManager.requestUserData();
   }
 
   /**
    * Request data deletion (GDPR Article 17 - Right to be Forgotten)
-    */
+  */
   async requestDataDeletion(reason: string): Promise<DataDeletionRequest> {
     return await this.privacyManager.requestDataDeletion(reason);
   }
 
   /**
    * Get current session information
-    */
+  */
   getCurrentSession(): SessionInfo | null {
     return this.sessionManager.getCurrentSession();
   }
 
   /**
    * Flush pending events immediately
-    */
+  */
   async flush(): Promise<void> {
     await this.eventQueue.flush();
   }
 
   /**
    * Get SDK status and configuration
-    */
+  */
   getStatus() {
     return {
       initialized: this.initialized,
@@ -312,7 +312,7 @@ export class CVPlusAnalyticsSDK {
 
   /**
    * Private helper methods
-    */
+  */
 
   private async initializeMinimalMode(): Promise<void> {
     // Initialize with minimal functionality (only necessary cookies/data)
@@ -673,7 +673,7 @@ export class CVPlusAnalyticsSDK {
 
 /**
  * Session Manager - Handles user sessions and identification
-  */
+*/
 class SessionManager {
   private currentSession: SessionInfo | null = null;
   private config: AnalyticsConfig;
@@ -765,7 +765,7 @@ class SessionManager {
 
 /**
  * Privacy Manager - Handles GDPR/CCPA compliance and consent management
-  */
+*/
 class PrivacyManager {
   private privacyConfig: AnalyticsConfig['privacy'];
   private currentConsent: Record<ConsentCategory, boolean> = {
@@ -894,7 +894,7 @@ class PrivacyManager {
 
 /**
  * Event Queue - Handles event batching and offline storage
-  */
+*/
 class EventQueue {
   private queue: AnalyticsEvent[] = [];
   private config: AnalyticsConfig['queue'];
@@ -949,7 +949,7 @@ class EventQueue {
 
 /**
  * Event Transport - Handles sending events to analytics backend
-  */
+*/
 class EventTransport {
   private config: AnalyticsConfig['transport'];
 

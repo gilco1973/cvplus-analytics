@@ -7,7 +7,7 @@
  * 
  * @author Gil Klainert
  * @version 1.0.0
-  */
+*/
 
 import * as admin from 'firebase-admin';
 import { config } from '../config/environment';
@@ -201,7 +201,7 @@ export class AlertManagerService {
 
   /**
    * Initialize default alert rules if they don't exist
-    */
+  */
   private async initializeDefaultRules(): Promise<void> {
     try {
       const rulesSnapshot = await this.firestore
@@ -222,7 +222,7 @@ export class AlertManagerService {
 
   /**
    * Check metrics against alert rules and trigger alerts if necessary
-    */
+  */
   async checkAlerts(metrics: {
     performance?: any;
     quality?: QualityInsights;
@@ -269,7 +269,7 @@ export class AlertManagerService {
 
   /**
    * Process escalation for active alerts
-    */
+  */
   async processEscalations(): Promise<void> {
     try {
       const activeAlertsSnapshot = await this.firestore
@@ -293,7 +293,7 @@ export class AlertManagerService {
 
   /**
    * Acknowledge an alert
-    */
+  */
   async acknowledgeAlert(alertId: string, acknowledgedBy: string): Promise<void> {
     try {
       await this.firestore
@@ -313,7 +313,7 @@ export class AlertManagerService {
 
   /**
    * Resolve an alert
-    */
+  */
   async resolveAlert(alertId: string, resolvedBy: string, resolution?: string): Promise<void> {
     try {
       const updateData: any = {
@@ -339,7 +339,7 @@ export class AlertManagerService {
 
   /**
    * Suppress an alert for a specified duration
-    */
+  */
   async suppressAlert(alertId: string, suppressedBy: string, durationMinutes: number): Promise<void> {
     try {
       const suppressedUntil = new Date(Date.now() + (durationMinutes * 60 * 1000));
@@ -362,7 +362,7 @@ export class AlertManagerService {
 
   /**
    * Get alert dashboard data
-    */
+  */
   async getAlertDashboard(): Promise<{
     activeAlerts: AlertInstance[];
     alertSummary: {
@@ -419,7 +419,7 @@ export class AlertManagerService {
 
   /**
    * Private helper methods
-    */
+  */
   private extractMetricValue(metrics: any, metricName: string, type: string): number | null {
     try {
       switch (type) {

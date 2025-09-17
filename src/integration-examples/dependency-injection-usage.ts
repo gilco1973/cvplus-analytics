@@ -5,7 +5,7 @@
  * Date: August 29, 2025
  * 
  * ARCHITECTURAL FIX EXAMPLE: Demonstrates the corrected dependency injection pattern
-  */
+*/
 
 import { Request, Response } from 'express';
 import { IFeatureRegistry, Feature } from '@cvplus/core';
@@ -16,7 +16,7 @@ import { enhancedPremiumGuard, premiumFeatureGuard, enterpriseFeatureGuard } fro
  * 
  * This is the recommended approach for production use.
  * The FeatureRegistryAdapter provides interface compliance for the existing FeatureRegistry.
-  */
+*/
 export function exampleWithPremiumAdapter() {
   // In a real Firebase Function, you would import:
   
@@ -47,7 +47,7 @@ export function exampleWithPremiumAdapter() {
 
 /**
  * Example 2: Using convenience wrappers with dependency injection
-  */
+*/
 export function exampleWithConvenienceWrappers() {
   // Mock registry for demonstration
   const mockFeatureRegistry: IFeatureRegistry = {
@@ -78,7 +78,7 @@ export function exampleWithConvenienceWrappers() {
 
 /**
  * Example 3: Complete Firebase Function with proper dependency injection
-  */
+*/
 export function exampleFirebaseFunction() {
   // In a real implementation, import the adapter
   
@@ -129,7 +129,7 @@ export function exampleFirebaseFunction() {
  * 
  * This shows how you could create a custom implementation of IFeatureRegistry
  * for specific use cases or testing.
-  */
+*/
 export class CustomFeatureRegistry implements IFeatureRegistry {
   private features: Map<string, Feature> = new Map();
   
@@ -177,7 +177,7 @@ export class CustomFeatureRegistry implements IFeatureRegistry {
 
 /**
  * Example 5: Error handling for missing registry
-  */
+*/
 export function exampleErrorHandling() {
   // This will properly handle the missing registry case
   const middlewareWithoutRegistry = enhancedPremiumGuard({
@@ -205,7 +205,7 @@ export function exampleErrorHandling() {
 
 /**
  * Example 6: Recommended production usage pattern
-  */
+*/
 export function productionUsageExample() {
   // This is how you should structure your Firebase Functions
   
@@ -232,14 +232,14 @@ export function productionUsageExample() {
    *     data: 'Advanced analytics data'
    *   };
    * });
-    */
+  */
   
   return 'See comments above for production usage pattern';
 }
 
 /**
  * Testing utilities for the new architecture
-  */
+*/
 export function createMockFeatureRegistry(customFeatures?: Feature[]): IFeatureRegistry {
   const defaultFeatures: Feature[] = [
     {

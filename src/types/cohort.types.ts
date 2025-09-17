@@ -1,3 +1,6 @@
+/**
+ * Cohort Analysis Types
+ */
 export interface CohortDefinition {
   id: string;
   name: string;
