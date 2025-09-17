@@ -10,9 +10,9 @@
  * @since Phase 3 - Analytics & Revenue Intelligence
 */
 
-import { onCall } from 'firebase-functions/v2/https';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
-import { requireAdmin } from '@cvplus/auth';
+import { getAuth } from 'firebase-admin/auth';
 import { revenueAnalyticsService, DateRange } from '../services/revenue-analytics.service';
 
 interface RevenueMetricsRequest {
@@ -63,8 +63,18 @@ export const getRevenueMetrics = onCall<RevenueMetricsRequest>(
     });
 
     try {
-      // Authentication and authorization - use requireAdmin directly
-      const authenticatedRequest = await requireAdmin(request);
+      // Authentication and authorization - require admin
+      if (!request.auth?.uid) {
+        throw new HttpsError('unauthenticated', 'Authentication required');
+      }
+
+      // Simple admin check (in production, you'd want more sophisticated role checking)
+      const auth = getAuth();
+      const userRecord = await auth.getUser(request.auth.uid);
+      const customClaims = userRecord.customClaims || {};
+      if (!customClaims.admin && !customClaims.roles?.includes('admin')) {
+        throw new HttpsError('permission-denied', 'Admin access required');
+      }
 
       // Parse and validate request parameters
       const {

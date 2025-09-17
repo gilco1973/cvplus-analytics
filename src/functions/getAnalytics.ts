@@ -6,20 +6,18 @@
  * @version 1.0.0
  */
 
-import { onCall } from 'firebase-functions/v2/https';
-import { requireAuth } from '@cvplus/auth';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { getAuth } from 'firebase-admin/auth';
 import { frontendIntegrationService } from '../integrations/frontend-integration';
 
 export const getAnalytics = onCall(async (request) => {
   try {
-    // Authenticate user (using existing auth from @cvplus/auth)
-    const authResult = await requireAuth(request);
-    if (!authResult.success || !authResult.userId) {
-      return {
-        success: false,
-        error: { message: 'Authentication required' }
-      };
+    // Authenticate user using Firebase Admin directly
+    if (!request.auth?.uid) {
+      throw new HttpsError('unauthenticated', 'Authentication required');
     }
+
+    const uid = request.auth.uid;
 
     const { timeRange = '30d' } = request.data || {};
 
@@ -53,12 +51,8 @@ export const getAnalytics = onCall(async (request) => {
  */
 export const getRealtimeAnalytics = onCall(async (request) => {
   try {
-    const authResult = await requireAuth(request);
-    if (!authResult.success || !authResult.userId) {
-      return {
-        success: false,
-        error: { message: 'Authentication required' }
-      };
+    if (!request.auth?.uid) {
+      throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
     const realtimeData = await frontendIntegrationService.getRealtimeAnalytics();
@@ -84,12 +78,8 @@ export const getRealtimeAnalytics = onCall(async (request) => {
  */
 export const getChartData = onCall(async (request) => {
   try {
-    const authResult = await requireAuth(request);
-    if (!authResult.success || !authResult.userId) {
-      return {
-        success: false,
-        error: { message: 'Authentication required' }
-      };
+    if (!request.auth?.uid) {
+      throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
     const { chartType, timeRange = '30d' } = request.data || {};

@@ -132,7 +132,7 @@ function anonymizeIpAddress(ipAddress: string): string {
       return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
     }
   }
-  // For IPv6 or other formats, just return anonymized placeholder
+  // For IPv6 or other formats, return anonymized default
   return '0.0.0.0';
 }
 

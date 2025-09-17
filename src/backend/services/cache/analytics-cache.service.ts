@@ -479,63 +479,503 @@ class AnalyticsCacheService {
       .substring(0, 8);
   }
 
-  // Analytics data fetchers (simplified implementations)
-  
-  private async getDashboardSummaryData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified dashboard summary
-    return {
-      totalUsers: 1250,
-      activeUsers: 892,
-      totalRevenue: 45750,
-      monthlyGrowth: 12.5,
-      conversionRate: 3.2,
-      churnRate: 2.1,
-      topFeatures: ['webPortal', 'aiChat', 'podcast']
-    };
+  // Analytics data fetchers (real implementations)
+
+  private async getDashboardSummaryData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get total users count from userProfiles collection
+      const usersQuery = await db.collection('userProfiles').get();
+      const totalUsers = usersQuery.size;
+
+      // Get active users (users with recent analytics events)
+      const activeUsersQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        .get();
+      const activeUserIds = new Set(activeUsersQuery.docs.map((doc: any) => doc.data().userId));
+      const activeUsers = activeUserIds.size;
+
+      // Get revenue data from analyticsEvents with revenue category
+      const revenueQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', '==', 'revenue')
+        .get();
+
+      const totalRevenue = revenueQuery.docs.reduce((sum: number, doc: any) => {
+        const eventData = doc.data();
+        return sum + (eventData.properties?.amount || eventData.properties?.value || 0);
+      }, 0);
+
+      // Calculate monthly growth (compare with previous period)
+      const periodLength = endDate.getTime() - startDate.getTime();
+      const previousPeriodStart = new Date(startDate.getTime() - periodLength);
+
+      const previousRevenueQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', previousPeriodStart)
+        .where('timestamp', '<', startDate)
+        .where('category', '==', 'revenue')
+        .get();
+
+      const previousRevenue = previousRevenueQuery.docs.reduce((sum: number, doc: any) => {
+        const eventData = doc.data();
+        return sum + (eventData.properties?.amount || eventData.properties?.value || 0);
+      }, 0);
+
+      const monthlyGrowth = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
+      // Get conversion rate (conversions vs visitors)
+      const conversionQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('eventName', 'in', ['subscription', 'upgrade', 'purchase'])
+        .get();
+
+      const conversions = new Set(conversionQuery.docs.map((doc: any) => doc.data().userId)).size;
+      const conversionRate = activeUsers > 0 ? (conversions / activeUsers) * 100 : 0;
+
+      // Get churn rate from analytics aggregates or calculate from events
+      const churnQuery = await db.collection('analyticsAggregates')
+        .where('metricType', '==', 'user_churn')
+        .where('timestamp', '>=', startDate)
+        .orderBy('timestamp', 'desc')
+        .limit(1)
+        .get();
+
+      let churnRate = 0;
+      if (!churnQuery.empty) {
+        churnRate = churnQuery.docs[0].data().value || 0;
+      } else {
+        // Fallback: calculate churn rate
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [recentUsersQuery, olderUsersQuery] = await Promise.all([
+          db.collection('analyticsEvents')
+            .where('timestamp', '>=', sevenDaysAgo)
+            .where('eventName', '==', 'user_session')
+            .get(),
+          db.collection('analyticsEvents')
+            .where('timestamp', '>=', thirtyDaysAgo)
+            .where('timestamp', '<', sevenDaysAgo)
+            .where('eventName', '==', 'user_session')
+            .get()
+        ]);
+
+        const recentUsers = new Set(recentUsersQuery.docs.map((doc: any) => doc.data().userId));
+        const olderUsers = new Set(olderUsersQuery.docs.map((doc: any) => doc.data().userId));
+        const churnedUsers = [...olderUsers].filter(userId => !recentUsers.has(userId));
+
+        churnRate = olderUsers.size > 0 ? (churnedUsers.length / olderUsers.size) * 100 : 0;
+      }
+
+      // Get top features from feature usage analytics events
+      const featureUsageQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', '==', 'feature_usage')
+        .get();
+
+      const featureUsage = new Map<string, number>();
+      featureUsageQuery.docs.forEach(doc => {
+        const eventData = doc.data();
+        const feature = eventData.properties?.feature || eventData.eventName;
+        if (feature) {
+          featureUsage.set(feature, (featureUsage.get(feature) || 0) + 1);
+        }
+      });
+
+      const topFeatures = Array.from(featureUsage.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([feature]) => feature);
+
+      return {
+        totalUsers,
+        activeUsers,
+        totalRevenue: Math.round(totalRevenue * 100) / 100, // Round to 2 decimal places
+        monthlyGrowth: Math.round(monthlyGrowth * 100) / 100,
+        conversionRate: Math.round(conversionRate * 100) / 100,
+        churnRate: Math.round(churnRate * 100) / 100,
+        topFeatures: topFeatures.length > 0 ? topFeatures : ['cv-processing', 'multimedia', 'analytics']
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard summary data:', error);
+      // Return fallback data to prevent dashboard failure
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        totalRevenue: 0,
+        monthlyGrowth: 0,
+        conversionRate: 0,
+        churnRate: 0,
+        topFeatures: ['cv-processing', 'multimedia', 'analytics']
+      };
+    }
   }
 
-  private async getRevenueMetricsData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified revenue metrics
-    return {
-      periods: [
-        { period: '2025-08', revenue: 15250, subscriptions: 125 },
-        { period: '2025-07', revenue: 13680, subscriptions: 118 },
-        { period: '2025-06', revenue: 12100, subscriptions: 110 }
-      ],
-      total: 45750,
-      growth: 12.5
-    };
+  private async getRevenueMetricsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000); // 3 months default
+
+      // Get revenue data grouped by month
+      const revenueQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', '==', 'revenue')
+        .orderBy('timestamp')
+        .get();
+
+      // Group revenue by month
+      const monthlyRevenue = new Map<string, { revenue: number; subscriptions: number }>();
+
+      revenueQuery.docs.forEach(doc => {
+        const eventData = doc.data();
+        const timestamp = eventData.timestamp.toDate();
+        const monthKey = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}`;
+
+        const amount = eventData.properties?.amount || eventData.properties?.value || 0;
+        const isSubscription = eventData.eventName === 'subscription' || eventData.properties?.type === 'subscription';
+
+        if (!monthlyRevenue.has(monthKey)) {
+          monthlyRevenue.set(monthKey, { revenue: 0, subscriptions: 0 });
+        }
+
+        const monthData = monthlyRevenue.get(monthKey)!;
+        monthData.revenue += amount;
+        if (isSubscription) {
+          monthData.subscriptions += 1;
+        }
+      });
+
+      // Convert to array and sort by period
+      const periods = Array.from(monthlyRevenue.entries())
+        .map(([period, data]) => ({
+          period,
+          revenue: Math.round(data.revenue * 100) / 100,
+          subscriptions: data.subscriptions
+        }))
+        .sort((a, b) => a.period.localeCompare(b.period));
+
+      const total = periods.reduce((sum, period) => sum + period.revenue, 0);
+
+      // Calculate growth rate from first to last period
+      let growth = 0;
+      if (periods.length >= 2) {
+        const firstPeriod = periods[0].revenue;
+        const lastPeriod = periods[periods.length - 1].revenue;
+        growth = firstPeriod > 0 ? ((lastPeriod - firstPeriod) / firstPeriod) * 100 : 0;
+      }
+
+      return {
+        periods,
+        total: Math.round(total * 100) / 100,
+        growth: Math.round(growth * 100) / 100
+      };
+    } catch (error) {
+      console.error('Error fetching revenue metrics data:', error);
+      // Return fallback data to prevent dashboard failure
+      return {
+        periods: [],
+        total: 0,
+        growth: 0
+      };
+    }
   }
 
-  private async getFeatureUsageData(_query: AnalyticsQuery): Promise<any> {
-    // Simplified feature usage
-    return {
-      features: [
-        { feature: 'webPortal', usage: 2340, users: 450 },
-        { feature: 'aiChat', usage: 1890, users: 380 },
-        { feature: 'podcast', usage: 1250, users: 290 }
-      ]
-    };
+  private async getFeatureUsageData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const featureUsageQuery = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', '==', 'feature_usage')
+        .get();
+
+      const featureMap = new Map<string, { usage: number; users: Set<string> }>();
+
+      featureUsageQuery.docs.forEach(doc => {
+        const eventData = doc.data();
+        const feature = eventData.properties?.feature || eventData.eventName;
+        const userId = eventData.userId;
+
+        if (feature && userId) {
+          if (!featureMap.has(feature)) {
+            featureMap.set(feature, { usage: 0, users: new Set() });
+          }
+          const featureData = featureMap.get(feature)!;
+          featureData.usage += 1;
+          featureData.users.add(userId);
+        }
+      });
+
+      const features = Array.from(featureMap.entries())
+        .map(([feature, data]) => ({
+          feature,
+          usage: data.usage,
+          users: data.users.size
+        }))
+        .sort((a, b) => b.usage - a.usage);
+
+      return { features };
+    } catch (error) {
+      console.error('Error fetching feature usage data:', error);
+      return { features: [] };
+    }
   }
 
-  private async getUserCohortsData(_query: AnalyticsQuery): Promise<any> {
-    return { cohorts: [] };
+  private async getUserCohortsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+      // Get user registration events to build cohorts
+      const userRegistrations = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('eventName', 'in', ['user_signup', 'user_registered'])
+        .orderBy('timestamp')
+        .get();
+
+      const cohorts = new Map<string, Set<string>>();
+
+      userRegistrations.docs.forEach(doc => {
+        const eventData = doc.data();
+        const timestamp = eventData.timestamp.toDate();
+        const weekKey = `${timestamp.getFullYear()}-W${Math.ceil(timestamp.getDate() / 7)}`;
+        const userId = eventData.userId;
+
+        if (!cohorts.has(weekKey)) {
+          cohorts.set(weekKey, new Set());
+        }
+        cohorts.get(weekKey)!.add(userId);
+      });
+
+      const cohortData = Array.from(cohorts.entries())
+        .map(([week, users]) => ({
+          cohort: week,
+          users: users.size,
+          userIds: Array.from(users)
+        }))
+        .sort((a, b) => a.cohort.localeCompare(b.cohort));
+
+      return { cohorts: cohortData };
+    } catch (error) {
+      console.error('Error fetching user cohorts data:', error);
+      return { cohorts: [] };
+    }
   }
 
-  private async getConversionMetricsData(_query: AnalyticsQuery): Promise<any> {
-    return { conversions: [] };
+  private async getConversionMetricsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const [visitorEvents, conversionEvents] = await Promise.all([
+        db.collection('analyticsEvents')
+          .where('timestamp', '>=', startDate)
+          .where('timestamp', '<=', endDate)
+          .where('eventName', 'in', ['page_view', 'session_start'])
+          .get(),
+        db.collection('analyticsEvents')
+          .where('timestamp', '>=', startDate)
+          .where('timestamp', '<=', endDate)
+          .where('eventName', 'in', ['subscription', 'upgrade', 'purchase'])
+          .get()
+      ]);
+
+      const conversions = conversionEvents.docs.map(doc => {
+        const eventData = doc.data();
+        return {
+          userId: eventData.userId,
+          type: eventData.eventName,
+          timestamp: eventData.timestamp.toDate(),
+          value: eventData.properties?.amount || eventData.properties?.value || 0
+        };
+      });
+
+      const totalVisitors = new Set(visitorEvents.docs.map((doc: any) => doc.data().userId)).size;
+      const totalConversions = conversions.length;
+      const conversionRate = totalVisitors > 0 ? (totalConversions / totalVisitors) * 100 : 0;
+
+      return {
+        conversions,
+        totalVisitors,
+        totalConversions,
+        conversionRate: Math.round(conversionRate * 100) / 100
+      };
+    } catch (error) {
+      console.error('Error fetching conversion metrics data:', error);
+      return { conversions: [] };
+    }
   }
 
-  private async getSubscriptionAnalyticsData(_query: AnalyticsQuery): Promise<any> {
-    return { subscriptions: [] };
+  private async getSubscriptionAnalyticsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const subscriptionEvents = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', '==', 'subscription')
+        .get();
+
+      const subscriptions = new Map<string, { new: number; churned: number; upgraded: number; downgraded: number }>();
+
+      subscriptionEvents.docs.forEach(doc => {
+        const eventData = doc.data();
+        const timestamp = eventData.timestamp.toDate();
+        const dayKey = timestamp.toISOString().split('T')[0];
+        const eventType = eventData.eventName;
+
+        if (!subscriptions.has(dayKey)) {
+          subscriptions.set(dayKey, { new: 0, churned: 0, upgraded: 0, downgraded: 0 });
+        }
+
+        const dayData = subscriptions.get(dayKey)!;
+        switch (eventType) {
+          case 'subscription_created':
+          case 'subscription_started':
+            dayData.new += 1;
+            break;
+          case 'subscription_cancelled':
+          case 'subscription_ended':
+            dayData.churned += 1;
+            break;
+          case 'subscription_upgraded':
+            dayData.upgraded += 1;
+            break;
+          case 'subscription_downgraded':
+            dayData.downgraded += 1;
+            break;
+        }
+      });
+
+      const subscriptionData = Array.from(subscriptions.entries())
+        .map(([date, data]) => ({ date, ...data }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return { subscriptions: subscriptionData };
+    } catch (error) {
+      console.error('Error fetching subscription analytics data:', error);
+      return { subscriptions: [] };
+    }
   }
 
-  private async getUserEngagementData(_query: AnalyticsQuery): Promise<any> {
-    return { periods: [] };
+  private async getUserEngagementData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const engagementEvents = await db.collection('analyticsEvents')
+        .where('timestamp', '>=', startDate)
+        .where('timestamp', '<=', endDate)
+        .where('category', 'in', ['user_interaction', 'feature_usage', 'session'])
+        .get();
+
+      const dailyEngagement = new Map<string, { sessions: Set<string>; actions: number; avgDuration: number[] }>();
+
+      engagementEvents.docs.forEach(doc => {
+        const eventData = doc.data();
+        const timestamp = eventData.timestamp.toDate();
+        const dayKey = timestamp.toISOString().split('T')[0];
+        const userId = eventData.userId;
+        const sessionDuration = eventData.properties?.duration || 0;
+
+        if (!dailyEngagement.has(dayKey)) {
+          dailyEngagement.set(dayKey, { sessions: new Set(), actions: 0, avgDuration: [] });
+        }
+
+        const dayData = dailyEngagement.get(dayKey)!;
+        dayData.sessions.add(userId);
+        dayData.actions += 1;
+        if (sessionDuration > 0) {
+          dayData.avgDuration.push(sessionDuration);
+        }
+      });
+
+      const periods = Array.from(dailyEngagement.entries())
+        .map(([date, data]) => ({
+          date,
+          activeUsers: data.sessions.size,
+          totalActions: data.actions,
+          avgSessionDuration: data.avgDuration.length > 0
+            ? Math.round(data.avgDuration.reduce((sum, dur) => sum + dur, 0) / data.avgDuration.length)
+            : 0
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return { periods };
+    } catch (error) {
+      console.error('Error fetching user engagement data:', error);
+      return { periods: [] };
+    }
   }
 
-  private async getChurnAnalysisData(_query: AnalyticsQuery): Promise<any> {
-    return { cohorts: [] };
+  private async getChurnAnalysisData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const { admin } = await import('@cvplus/core');
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+      // Get churn prediction data
+      const churnPredictions = await db.collection('churn_predictions')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .get();
+
+      const cohortChurn = new Map<string, { atRisk: number; churned: number; retained: number }>();
+
+      churnPredictions.docs.forEach(doc => {
+        const churnData = doc.data();
+        const timestamp = churnData.createdAt.toDate();
+        const weekKey = `${timestamp.getFullYear()}-W${Math.ceil(timestamp.getDate() / 7)}`;
+        const riskLevel = churnData.churnProbability;
+
+        if (!cohortChurn.has(weekKey)) {
+          cohortChurn.set(weekKey, { atRisk: 0, churned: 0, retained: 0 });
+        }
+
+        const cohortData = cohortChurn.get(weekKey)!;
+        if (riskLevel > 0.7) {
+          cohortData.atRisk += 1;
+        } else if (riskLevel > 0.9) {
+          cohortData.churned += 1;
+        } else {
+          cohortData.retained += 1;
+        }
+      });
+
+      const cohorts = Array.from(cohortChurn.entries())
+        .map(([cohort, data]) => ({ cohort, ...data }))
+        .sort((a, b) => a.cohort.localeCompare(b.cohort));
+
+      return { cohorts };
+    } catch (error) {
+      console.error('Error fetching churn analysis data:', error);
+      return { cohorts: [] };
+    }
   }
 
   /**

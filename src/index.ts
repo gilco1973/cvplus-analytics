@@ -54,9 +54,9 @@ export {
 export { CacheStatsManager } from './services/cache-stats-manager';
 export { PerformanceMetricsManager } from './services/performance-metrics-manager';
 
-// ML Services migrated from @cvplus/recommendations
-export { VectorDatabaseService } from './services/ml/vector-database.service';
-export { EmbeddingService } from './services/ml/embedding.service';
+// ML Services have been moved to @cvplus/processing module
+// export { VectorDatabaseService } from '@cvplus/processing/services/ml/vector-database.service';
+// export { EmbeddingService } from '@cvplus/processing/services/ml/embedding.service';
 
 // Advanced Services (when available) - conditional exports removed
 // export { CVPlusAnalyticsSDK } from './services/analytics-sdk.service';
@@ -164,7 +164,7 @@ export const predictChurn = onCall(async (data) => {
   }
 });
 
-// Migration stubs removed - functions are imported from actual implementations above
+// All migration functions have been replaced with actual implementations above
 
 // Conversion Analytics Functions - Fully implemented
 export {

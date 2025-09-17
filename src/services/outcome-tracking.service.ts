@@ -9,10 +9,10 @@
  * @version 1.0.0
 */
 
-import { BaseService, ServiceConfig } from '../shared/base-service';
+import { BaseService, ServiceConfig } from '@cvplus/core/shared/base-service';
 import { UserOutcome, OutcomeEvent } from '../types/user-outcomes';
 import { AnalyticsEvent } from '../types/analytics';
-import { Logger } from '../shared/logger';
+import { Logger } from '@cvplus/core/shared/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 

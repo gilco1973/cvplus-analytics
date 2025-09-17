@@ -12,7 +12,7 @@ import * as admin from 'firebase-admin';
 import { UserOutcome, OutcomeEvent } from '../../types/user-outcomes';
 import { AnalyticsEvent } from '../../types/analytics';
 import { CallableRequest } from 'firebase-functions/v2/https';
-import { corsOptions } from '../../config/cors';
+import { corsOptions } from "@cvplus/core/config/cors";
 
 // Initialize admin if not already done
 if (!admin.apps.length) {
@@ -404,7 +404,7 @@ async function sendFollowUpNotification(outcome: UserOutcome, daysSince: number)
         companyName: outcome.companyName,
         applicationDate: outcome.applicationDate
       },
-      createdAt: FieldValue.serverTimestamp()
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
   } catch (error) {
     console.error('Failed to send follow-up notification:', error);

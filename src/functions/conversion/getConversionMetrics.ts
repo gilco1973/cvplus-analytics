@@ -151,10 +151,17 @@ export const getConversionMetrics = onCall(async (request) => {
     }
 
     const snapshot = await query.get();
-    const events = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const events = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        value: data.value || 0,
+        userId: data.userId || '',
+        type: data.type || '',
+        timestamp: data.timestamp,
+        ...data
+      };
+    });
 
     // Calculate metrics
     const totalConversions = events.length;
@@ -282,10 +289,17 @@ export const getBusinessIntelligenceReport = onCall(async (request) => {
       .orderBy('createdAt', 'desc')
       .get();
 
-    const conversionEvents = conversionEventsQuery.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const conversionEvents = conversionEventsQuery.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        value: data.value || 0,
+        userId: data.userId || '',
+        type: data.type || '',
+        timestamp: data.timestamp,
+        ...data
+      };
+    });
 
     // Calculate conversion metrics
     const totalConversions = conversionEvents.length;
@@ -315,7 +329,7 @@ export const getBusinessIntelligenceReport = onCall(async (request) => {
     const conversionMetrics: ConversionMetrics = {
       totalConversions,
       totalValue,
-      uniqueUsers,
+      uniqueUsers: uniqueUsers,
       conversionRate,
       averageOrderValue: totalConversions > 0 ? totalValue / totalConversions : 0,
       conversionsByType,
@@ -343,7 +357,7 @@ export const getBusinessIntelligenceReport = onCall(async (request) => {
       .get();
 
     const sessions = engagementQuery.docs.map(doc => doc.data());
-    const uniqueUsers = new Set(sessions.map(session => session.userId)).size;
+    const uniqueEngagedUsers = new Set(sessions.map(session => session.userId)).size;
     const totalSessions = sessions.length;
     const averageSessionDuration = sessions.length > 0
       ? sessions.reduce((sum, session) => sum + (session.duration || 0), 0) / sessions.length
@@ -390,7 +404,12 @@ export const getBusinessIntelligenceReport = onCall(async (request) => {
       .map(([feature, usage]) => ({ feature, usage }));
 
     // Forecasting (simplified)
-    let forecasting = {};
+    let forecasting: {
+      projectedMonthlyRevenue: number;
+      projectedQuarterlyRevenue: number;
+      projectedYearlyRevenue: number;
+      revenueGrowthTrend: string;
+    } | undefined = undefined;
     if (includeForecasting) {
       const dailyRevenue = totalRevenue / Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       forecasting = {
@@ -419,10 +438,10 @@ export const getBusinessIntelligenceReport = onCall(async (request) => {
 
       // User engagement
       engagement: {
-        uniqueUsers,
+        uniqueUsers: uniqueEngagedUsers,
         totalSessions,
         averageSessionDuration,
-        sessionsPerUser: uniqueUsers > 0 ? totalSessions / uniqueUsers : 0
+        sessionsPerUser: uniqueEngagedUsers > 0 ? totalSessions / uniqueEngagedUsers : 0
       },
 
       // Customer metrics

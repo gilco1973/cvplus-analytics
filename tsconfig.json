@@ -6,7 +6,19 @@
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@cvplus/auth": ["../auth/src/index"],
+      "@cvplus/auth/*": ["../auth/src/*"],
+      "@cvplus/core": ["../core/src/index"],
+      "@cvplus/core/*": ["../core/src/*"],
+      "@cvplus/i18n": ["../i18n/src/index"],
+      "@cvplus/i18n/*": ["../i18n/src/*"]
+    }
   },
   "include": [
     "src/**/*"

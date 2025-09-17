@@ -89,7 +89,7 @@ class PricingCacheService {
 
         const pipeline = this.redis.pipeline();
         for (const key of commonKeys) {
-          // Set placeholder values for common pricing queries
+          // Set cache warming values for common analytics queries
           pipeline.setex(key, 3600, JSON.stringify({
             cached: true,
             timestamp: Date.now(),

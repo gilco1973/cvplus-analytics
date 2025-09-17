@@ -1,6 +1,6 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { Request, Response } from 'firebase-functions';
-import { requireAuth, getUserRoles, getUserDisplayInfo } from '@cvplus/auth';
+import { requireAuthExpress, getUserRoles, getUserDisplayInfo, hasAnyRole } from '@cvplus/auth';
 import { admin } from '@cvplus/core';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
@@ -73,14 +73,13 @@ const getPublicProfile = async (profileId: string) => {
   }
 };
 
-import { hasAnyRole } from '@cvplus/auth';
 
 // Implement isAdmin using auth utilities
 const isAdmin = async (auth: any) => {
   try {
     if (!auth?.uid) return false;
     const userRoles = await getUserRoles(auth.uid);
-    return hasAnyRole({ customClaims: { roles: userRoles } }, ['admin', 'super_admin']);
+    return hasAnyRole(userRoles, ['admin', 'super_admin']);
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;
@@ -178,8 +177,8 @@ export const getAnalytics = onRequest(
       }
 
       // Authenticate user
-      const authResult = await requireAuth(req);
-      if (!authResult.success || !authResult.userId) {
+      const authResult = await requireAuthExpress(req);
+      if (!authResult.user?.uid) {
         res.status(401).json({
           success: false,
           message: 'Authentication required'
@@ -187,7 +186,7 @@ export const getAnalytics = onRequest(
         return;
       }
 
-      const userId = authResult.userId;
+      const userId = authResult.user.uid;
 
       // Extract entityType and entityId from URL path
       const urlParts = req.path.split('/').filter(part => part.length > 0);
@@ -309,17 +308,56 @@ async function verifyEntityOwnership(
   userId: string
 ): Promise<{ isOwner: boolean; entity?: any }> {
   try {
+    const db = admin.firestore();
+
     switch (entityType) {
       case 'user_profile':
         return { isOwner: entityId === userId };
 
       case 'processed_cv':
-        // Would need to implement getProcessedCV ownership check
-        return { isOwner: true }; // Simplified for now
+        // Check processed CV ownership from cvJobs collection
+        const cvJobQuery = await db.collection('cvJobs')
+          .where('id', '==', entityId)
+          .where('userId', '==', userId)
+          .limit(1)
+          .get();
+
+        if (!cvJobQuery.empty) {
+          const cvJob = cvJobQuery.docs[0].data();
+          return { isOwner: true, entity: cvJob };
+        }
+
+        // Also check processedCVs collection
+        const processedCVDoc = await db.collection('processedCVs').doc(entityId).get();
+        if (processedCVDoc.exists) {
+          const processedCV = processedCVDoc.data();
+          return {
+            isOwner: processedCV?.userId === userId,
+            entity: processedCV
+          };
+        }
+
+        return { isOwner: false };
 
       case 'generated_content':
-        // Would need to implement getGeneratedContent ownership check
-        return { isOwner: true }; // Simplified for now
+        // Check generated content ownership from generatedContent collection
+        const contentDoc = await db.collection('generatedContent').doc(entityId).get();
+        if (contentDoc.exists) {
+          const content = contentDoc.data();
+          return {
+            isOwner: content?.userId === userId,
+            entity: content
+          };
+        }
+
+        // Also check if it's linked to a CV job owned by the user
+        const linkedCVQuery = await db.collection('cvJobs')
+          .where('userId', '==', userId)
+          .where('generatedContent', 'array-contains', entityId)
+          .limit(1)
+          .get();
+
+        return { isOwner: !linkedCVQuery.empty };
 
       case 'public_profile':
         const profile = await getPublicProfile(entityId);
@@ -473,12 +511,9 @@ async function generateInsights(entityType: EntityType, entityId: string, analyt
   // Calculate performance score
   const performanceScore = calculatePerformanceScore(entityType, analyticsData);
 
-  // Calculate trends (would require historical data comparison)
-  const trends = {
-    viewsChange: Math.floor(Math.random() * 40) - 20, // Placeholder
-    engagementChange: Math.floor(Math.random() * 30) - 15,
-    conversionChange: Math.floor(Math.random() * 20) - 10
-  };
+  // Calculate trends using historical data comparison
+  const db = admin.firestore();
+  const trends = await calculateTrends(entityType, entityId, analyticsData, db);
 
   // Generate recommendations
   const recommendations = generateRecommendations(entityType, analyticsData, trends);
@@ -584,6 +619,56 @@ function getCacheMaxAge(period: AggregationPeriod): number {
   };
 
   return cacheSettings[period as keyof typeof cacheSettings] || 900;
+}
+
+/**
+ * Calculate trends using historical data comparison
+ */
+async function calculateTrends(entityType: EntityType, entityId: string, currentData: any, db: any): Promise<any> {
+  try {
+    // Get data from 30 days ago for comparison
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const historicalAggregates = await getAnalyticsAggregates(entityType, entityId);
+    const historicalData = historicalAggregates.reduce((acc, agg) => {
+      const date = agg.startTime.toDate();
+      if (date >= thirtyDaysAgo && date <= new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)) {
+        acc[agg.period] = agg;
+      }
+      return acc;
+    }, {} as any);
+
+    // Calculate percentage changes
+    const calculateChange = (current: number, historical: number): number => {
+      if (historical === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - historical) / historical) * 100);
+    };
+
+    const currentViews = currentData.aggregates?.totalViews || 0;
+    const historicalViews = historicalData.totalViews || 0;
+
+    const currentEngagement = currentData.aggregates?.totalEngagements || 0;
+    const historicalEngagement = historicalData.totalEngagements || 0;
+
+    const currentConversion = currentData.aggregates?.totalConversions || 0;
+    const historicalConversion = historicalData.totalConversions || 0;
+
+    return {
+      viewsChange: calculateChange(currentViews, historicalViews),
+      engagementChange: calculateChange(currentEngagement, historicalEngagement),
+      conversionChange: calculateChange(currentConversion, historicalConversion),
+      period: '30-day comparison'
+    };
+  } catch (error) {
+    console.error('Error calculating trends:', error);
+    // Return default trends in case of error
+    return {
+      viewsChange: 0,
+      engagementChange: 0,
+      conversionChange: 0,
+      period: 'no historical data'
+    };
+  }
 }
 
 /**

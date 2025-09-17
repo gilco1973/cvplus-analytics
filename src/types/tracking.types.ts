@@ -42,16 +42,8 @@ export enum EventSource {
   WORKER = 'worker'
 }
 
-/**
- * Privacy consent categories for GDPR compliance
-*/
-export enum ConsentCategory {
-  NECESSARY = 'necessary',
-  ANALYTICS = 'analytics',
-  MARKETING = 'marketing',
-  PERSONALIZATION = 'personalization',
-  FUNCTIONAL = 'functional'
-}
+// ConsentCategory is now defined in privacy.types.ts to avoid circular dependencies
+import { ConsentCategory } from './privacy.types';
 
 /**
  * Device information interface

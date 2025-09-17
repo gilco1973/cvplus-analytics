@@ -2,7 +2,17 @@
  * CVPlus Analytics - Privacy & Consent Management Types
 // GDPR/CCPA compliant privacy management system
 
-import { ConsentCategory } from './tracking.types';
+/**
+ * Privacy consent categories for GDPR compliance
+ * (Duplicated from tracking.types to avoid circular import issues)
+ */
+export enum ConsentCategory {
+  NECESSARY = 'necessary',
+  ANALYTICS = 'analytics',
+  MARKETING = 'marketing',
+  PERSONALIZATION = 'personalization',
+  FUNCTIONAL = 'functional'
+}
 
 /**
  * Privacy regulation compliance types
@@ -347,10 +357,7 @@ export interface AnonymizationConfig {
   };
 }
 
-/**
- * Export all privacy-related types from ConsentCategory in tracking.types.ts
-*/
-export type { ConsentCategory } from './tracking.types';
+// ConsentCategory is defined above in this file
 
 /**
  * GDPR Article 30 record of processing activities

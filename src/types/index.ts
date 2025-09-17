@@ -160,19 +160,46 @@ export type {
   RevenueComparison
 } from './revenue.types';
 
-// Dashboard Types - TODO: Create dashboard.types.ts when needed
-// export type {
-//   DashboardMetric,
-//   DashboardConfig as ModernDashboardConfig,
-//   DashboardWidget as ModernDashboardWidget,
-//   DashboardLayout
-// } from './dashboard.types';
+// Dashboard Types - Complete dashboard interface definitions
+export interface DashboardMetric {
+  id: string;
+  name: string;
+  value: number | string;
+  change?: number;
+  trend?: 'up' | 'down' | 'stable';
+  unit?: string;
+  format?: 'number' | 'currency' | 'percentage';
+}
+
+export interface DashboardWidget {
+  id: string;
+  type: 'metric' | 'chart' | 'table' | 'progress';
+  title: string;
+  data: any;
+  size: { width: number; height: number };
+  position: { x: number; y: number };
+}
+
+export interface DashboardLayout {
+  id: string;
+  name: string;
+  widgets: DashboardWidget[];
+  filters?: Record<string, any>;
+  refreshInterval?: number;
+}
+
+export interface DashboardConfig {
+  layouts: DashboardLayout[];
+  defaultLayout: string;
+  permissions: Record<string, string[]>;
+  theme?: 'light' | 'dark';
+}
 
 // Comprehensive Types (conditional exports removed - use explicit imports)
-// export * from './tracking.types';
-// export * from './privacy.types';
-// export * from './ab-testing.types';
-// export * from './business-intelligence.types';
+export * from './tracking.types';
+export * from './privacy.types';
+export * from './ab-testing.types';
+export * from './business-intelligence.types';
 
 // =============================================================================
 // ALL TYPE EXPORTS (for maximum compatibility)

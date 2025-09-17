@@ -2,12 +2,11 @@
  * CVPlus Analytics SDK - Main Service Class
 // Comprehensive analytics collection and privacy management
 
-import { 
+import {
   AnalyticsEvent,
   AnalyticsConfig,
   EventType,
   EventSource,
-  ConsentCategory,
   CVPlusEvents,
   EventProperties,
   UserIdentification,
@@ -16,6 +15,8 @@ import {
   EventProcessingResult,
   EventBatch
 } from '../types/tracking.types';
+
+import type { ConsentCategory } from '../types/privacy.types';
 
 import { 
   ConsentRecord,
@@ -977,11 +978,8 @@ class PrivacyManager {
       };
     }
     
-    // Would implement geolocation with consent
-    return {
-      country: 'unknown',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    };
+    // Implement geolocation with consent
+    return await this.getLocationWithConsent();
   }
 
   async requestUserData(): Promise<DataAccessRequest> {
@@ -1216,5 +1214,127 @@ class EventTransport {
   async sendEvent(event: AnalyticsEvent): Promise<EventProcessingResult> {
     const results = await this.sendBatch([event]);
     return results[0];
+  }
+
+  /**
+   * Get user location with proper consent handling
+   */
+  private async getLocationWithConsent(): Promise<{ country?: string; region?: string; city?: string; timezone: string }> {
+    try {
+      // Check if user has given geolocation consent
+      const locationConsent = this.consentManager.getConsentStatus('location');
+      if (!locationConsent || !locationConsent.granted) {
+        // Return basic timezone info only
+        return {
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+      }
+
+      // Try to get location via browser geolocation API with user consent
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        try {
+          const position = await this.getCurrentPosition();
+          const locationInfo = await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+
+          return {
+            country: locationInfo.country,
+            region: locationInfo.region,
+            city: locationInfo.city,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          };
+        } catch (geolocationError) {
+          console.warn('Geolocation failed, falling back to IP-based detection:', geolocationError);
+        }
+      }
+
+      // Fallback: IP-based location detection
+      try {
+        const ipLocation = await this.getIPBasedLocation();
+        return {
+          country: ipLocation.country,
+          region: ipLocation.region,
+          city: ipLocation.city,
+          timezone: ipLocation.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+      } catch (ipError) {
+        console.warn('IP-based location detection failed:', ipError);
+      }
+
+      // Final fallback: timezone only
+      return {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    } catch (error) {
+      console.error('Error getting location with consent:', error);
+      return {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    }
+  }
+
+  /**
+   * Get current position using browser geolocation API
+   */
+  private getCurrentPosition(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        reject,
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes cache
+        }
+      );
+    });
+  }
+
+  /**
+   * Reverse geocode coordinates to location information
+   */
+  private async reverseGeocode(lat: number, lon: number): Promise<{ country?: string; region?: string; city?: string }> {
+    try {
+      // Use a privacy-friendly geocoding service
+      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+
+      if (!response.ok) {
+        throw new Error(`Geocoding failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        country: data.countryName || data.countryCode,
+        region: data.principalSubdivision || data.locality,
+        city: data.city || data.locality
+      };
+    } catch (error) {
+      console.error('Reverse geocoding failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get location based on IP address (privacy-friendly)
+   */
+  private async getIPBasedLocation(): Promise<{ country?: string; region?: string; city?: string; timezone?: string }> {
+    try {
+      // Use a privacy-friendly IP geolocation service
+      const response = await fetch('https://ipapi.co/json/');
+
+      if (!response.ok) {
+        throw new Error(`IP location failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        country: data.country_name,
+        region: data.region,
+        city: data.city,
+        timezone: data.timezone
+      };
+    } catch (error) {
+      console.error('IP-based location detection failed:', error);
+      throw error;
+    }
   }
 }

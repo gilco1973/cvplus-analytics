@@ -16,12 +16,15 @@ import {
   DataBreachNotification,
   ConsentMechanism,
   ProcessingPurpose,
-  PrivacyRegulation
+  PrivacyRegulation,
+  ConsentCategory
 } from '../types/privacy.types';
-import { ConsentCategory } from '../types/tracking.types';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
-import { ConsentCategory } from '../types/tracking.types';
+// Initialize Firebase Admin if not already done
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 /**
  * Privacy Compliance Service
@@ -465,7 +468,7 @@ export class PrivacyComplianceService {
             code: verificationCode,
             expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
             verified: false,
-            createdAt: FieldValue.serverTimestamp()
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
           return true;
         case 'id_document':
@@ -585,7 +588,7 @@ export class PrivacyComplianceService {
   }
 
   private async updateConsentFromSettings(userId: string, settings: Record<ConsentCategory, boolean>): Promise<void> {
-    const db = getFirestore();
+    const db = admin.firestore();
     const batch = db.batch();
 
     for (const [category, granted] of Object.entries(settings)) {
@@ -596,7 +599,7 @@ export class PrivacyComplianceService {
         userId,
         category,
         granted,
-        updatedAt: FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         source: 'privacy_settings'
       }, { merge: true });
     }
@@ -605,7 +608,7 @@ export class PrivacyComplianceService {
   }
 
   private async storePrivacySettings(userId: string, settings: Partial<PrivacySettings>): Promise<PrivacySettings> {
-    const db = getFirestore();
+    const db = admin.firestore();
     const defaultSettings = this.getDefaultPrivacySettings(userId);
     const mergedSettings = { ...defaultSettings, ...settings };
 
@@ -613,21 +616,21 @@ export class PrivacyComplianceService {
       .doc(userId)
       .set({
         ...mergedSettings,
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 
     return mergedSettings;
   }
 
   private async stopDataProcessingForCategory(userId: string, category: ConsentCategory): Promise<void> {
-    const db = getFirestore();
+    const db = admin.firestore();
 
     // Mark data processing stop request
     await db.collection('data_processing_stops')
       .add({
         userId,
         category,
-        requestedAt: FieldValue.serverTimestamp(),
+        requestedAt: admin.firestore.FieldValue.serverTimestamp(),
         status: 'processing'
       });
 
@@ -636,17 +639,26 @@ export class PrivacyComplianceService {
       await this.stopUserAnalytics(userId);
     }
 
-    // Additional category-specific processing stops would be implemented here
+    // Handle other categories
+    if (category === 'marketing') {
+      await this.stopMarketingCommunications(userId);
+    } else if (category === 'personalization') {
+      await this.disablePersonalization(userId);
+    } else if (category === 'location') {
+      await this.clearLocationData(userId);
+    } else if (category === 'performance') {
+      await this.disablePerformanceTracking(userId);
+    }
   }
 
   private async stopUserAnalytics(userId: string): Promise<void> {
     // Set user preference to stop analytics tracking
-    const db = getFirestore();
+    const db = admin.firestore();
     await db.collection('user_preferences')
       .doc(userId)
       .set({
         analyticsDisabled: true,
-        disabledAt: FieldValue.serverTimestamp()
+        disabledAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
   }
 
@@ -657,7 +669,7 @@ export class PrivacyComplianceService {
         userId,
         status: 'scheduled',
         scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         taskType: 'anonymization',
         priority: 'high'
       });
@@ -780,7 +792,7 @@ export class PrivacyComplianceService {
         downloadToken,
         fileSize: file.length,
         expiresAt: new Date(Date.now() + expiry * 60 * 60 * 1000), // hours to milliseconds
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         downloadCount: 0,
         maxDownloads: 3
       });
@@ -806,7 +818,7 @@ export class PrivacyComplianceService {
           exportDate: new Date().toLocaleDateString()
         },
         status: 'pending',
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to send data export email:', error);
@@ -828,7 +840,7 @@ export class PrivacyComplianceService {
           expiryDate: new Date(Date.now() + expiry * 60 * 60 * 1000).toLocaleDateString()
         },
         status: 'pending',
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to send portability email:', error);
@@ -850,7 +862,7 @@ export class PrivacyComplianceService {
           contactEmail: 'privacy@cvplus.com'
         },
         status: 'pending',
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to send deletion confirmation email:', error);
@@ -867,7 +879,7 @@ export class PrivacyComplianceService {
         actionType: 'containment',
         description: 'Immediate security containment measures implemented',
         severity: notification.severity,
-        timestamp: FieldValue.serverTimestamp(),
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
         measures: [
           'Access revoked for compromised accounts',
           'Affected systems isolated',
@@ -880,7 +892,7 @@ export class PrivacyComplianceService {
       // Update breach status
       await this.db.collection('data_breaches').doc(notification.id).update({
         containmentStatus: 'implemented',
-        containmentTimestamp: FieldValue.serverTimestamp()
+        containmentTimestamp: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to implement containment measures:', error);
@@ -903,7 +915,7 @@ export class PrivacyComplianceService {
         status: 'scheduled',
         description: notification.description,
         affectedRecords: notification.affectedRecords,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         scheduledFor: new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
       });
     } catch (error) {
@@ -929,7 +941,7 @@ export class PrivacyComplianceService {
         actionRequired: notification.severity === 'high',
         status: 'scheduled',
         scheduledFor: new Date(Date.now() + userNotificationDelay),
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to schedule user notifications:', error);
@@ -955,7 +967,7 @@ export class PrivacyComplianceService {
           'Update incident response procedures'
         ],
         priority: notification.severity === 'high' ? 'critical' : 'high',
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
       });
 
@@ -966,7 +978,7 @@ export class PrivacyComplianceService {
         severity: notification.severity,
         message: `Data breach incident ${notification.id} requires immediate attention`,
         breachId: notification.id,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to trigger incident response:', error);
@@ -1022,12 +1034,12 @@ class ConsentManager {
 
   async updateConsent(userId: string, updates: Partial<ConsentRecord>): Promise<ConsentRecord> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const consentRef = db.collection('user_consent').doc(userId);
 
       const updatedData = {
         ...updates,
-        updatedAt: FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         version: (updates.version || 0) + 1
       };
 
@@ -1058,7 +1070,7 @@ class ConsentManager {
     reason?: string
   ): Promise<ConsentRecord> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const batch = db.batch();
 
       // Update consent records for each category
@@ -1068,10 +1080,10 @@ class ConsentManager {
 
         batch.update(consentRef, {
           granted: false,
-          withdrawnAt: FieldValue.serverTimestamp(),
+          withdrawnAt: admin.firestore.FieldValue.serverTimestamp(),
           withdrawalReason: reason || 'User requested withdrawal',
           status: 'withdrawn',
-          updatedAt: FieldValue.serverTimestamp()
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
         // Stop data processing for this category
@@ -1085,7 +1097,7 @@ class ConsentManager {
         userId,
         categories,
         reason: reason || 'User requested withdrawal',
-        withdrawnAt: FieldValue.serverTimestamp(),
+        withdrawnAt: admin.firestore.FieldValue.serverTimestamp(),
         processedBy: 'system'
       });
 
@@ -1152,12 +1164,106 @@ class ConsentManager {
     try {
       await this.db.collection('user_consent').doc(record.id).set({
         ...record,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to store consent record:', error);
       throw error;
     }
+  }
+
+  /**
+   * Stop marketing communications for a user
+   */
+  private async stopMarketingCommunications(userId: string): Promise<void> {
+    const db = admin.firestore();
+    await db.collection('user_preferences')
+      .doc(userId)
+      .set({
+        marketingDisabled: true,
+        emailMarketing: false,
+        smsMarketing: false,
+        pushMarketing: false,
+        disabledAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    // Remove from marketing lists
+    await db.collection('marketing_unsubscriptions').add({
+      userId,
+      reason: 'consent_withdrawn',
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
+  /**
+   * Disable personalization for a user
+   */
+  private async disablePersonalization(userId: string): Promise<void> {
+    const db = admin.firestore();
+    await db.collection('user_preferences')
+      .doc(userId)
+      .set({
+        personalizationDisabled: true,
+        profileTracking: false,
+        behaviorAnalysis: false,
+        disabledAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    // Clear stored personalization data
+    await db.collection('user_personalization_data').doc(userId).delete();
+  }
+
+  /**
+   * Clear location data for a user
+   */
+  private async clearLocationData(userId: string): Promise<void> {
+    const db = admin.firestore();
+
+    // Disable location tracking
+    await db.collection('user_preferences')
+      .doc(userId)
+      .set({
+        locationDisabled: true,
+        geoTracking: false,
+        disabledAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    // Clear stored location data
+    const locationDataQuery = await db.collection('user_location_data')
+      .where('userId', '==', userId)
+      .get();
+
+    const batch = db.batch();
+    locationDataQuery.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+  }
+
+  /**
+   * Disable performance tracking for a user
+   */
+  private async disablePerformanceTracking(userId: string): Promise<void> {
+    const db = admin.firestore();
+    await db.collection('user_preferences')
+      .doc(userId)
+      .set({
+        performanceTrackingDisabled: true,
+        errorReporting: false,
+        performanceMetrics: false,
+        disabledAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    // Clear performance tracking data
+    const performanceDataQuery = await db.collection('user_performance_data')
+      .where('userId', '==', userId)
+      .get();
+
+    const batch = db.batch();
+    performanceDataQuery.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
   }
 }
 
@@ -1165,14 +1271,14 @@ class ConsentManager {
  * Data Subject Rights Manager - Handles GDPR data subject requests
 */
 class DataSubjectRightsManager {
-  private db = getFirestore();
+  private db = admin.firestore();
 
   async storeAccessRequest(request: DataAccessRequest): Promise<void> {
     // Store data access request in Firestore
     try {
       await this.db.collection('data_access_requests').doc(request.requestId).set({
         ...request,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to store access request:', error);
@@ -1185,7 +1291,7 @@ class DataSubjectRightsManager {
     try {
       await this.db.collection('data_deletion_requests').doc(request.requestId).set({
         ...request,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to store deletion request:', error);
@@ -1198,7 +1304,7 @@ class DataSubjectRightsManager {
     try {
       await this.db.collection('data_portability_requests').doc(request.requestId).set({
         ...request,
-        createdAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to store portability request:', error);
@@ -1216,7 +1322,7 @@ class DataSubjectRightsManager {
         if (doc.exists) {
           await doc.ref.update({
             status,
-            lastUpdatedAt: FieldValue.serverTimestamp(),
+            lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
             ...(metadata && { metadata })
           });
           break;
@@ -1308,10 +1414,10 @@ class PrivacyAuditManager {
 
   private async storeAuditRecord(record: PrivacyAuditRecord): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('privacy_audit_records').add({
         ...record,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         storedAt: new Date()
       });
     } catch (error) {

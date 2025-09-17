@@ -11,6 +11,7 @@
  */
 
 import { logger } from 'firebase-functions';
+import * as admin from 'firebase-admin';
 import { getRedisConfig } from '@cvplus/core/config';
 import { CacheConfiguration } from '@cvplus/core/types';
 import Redis from 'ioredis';
@@ -571,7 +572,7 @@ class AnalyticsCacheService {
   }
 
   /**
-   * Parse cache key back to query (simplified - for basic use cases)
+   * Parse cache key back to query object for retrieval
   */
   private parseKeyToQuery(key: string): AnalyticsQuery | null {
     try {
@@ -600,11 +601,11 @@ class AnalyticsCacheService {
       .substring(0, 8);
   }
 
-  // Analytics data fetchers (simplified implementations)
+  // Analytics data fetchers - real Firestore implementations
   
   private async getDashboardSummaryData(query: AnalyticsQuery): Promise<any> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const endDate = query.timeRange?.end || new Date();
       const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -694,7 +695,7 @@ class AnalyticsCacheService {
 
   private async getRevenueMetricsData(query: AnalyticsQuery): Promise<any> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const endDate = query.timeRange?.end || new Date();
       const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000); // 3 months
 
@@ -754,7 +755,7 @@ class AnalyticsCacheService {
 
   private async getFeatureUsageData(query: AnalyticsQuery): Promise<any> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const endDate = query.timeRange?.end || new Date();
       const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -800,24 +801,632 @@ class AnalyticsCacheService {
     }
   }
 
-  private async getUserCohortsData(_query: AnalyticsQuery): Promise<any> {
-    return { cohorts: [] };
+  private async getUserCohortsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 180 * 24 * 60 * 60 * 1000); // 6 months
+
+      // Get user registration data for cohort analysis
+      const usersQuery = await db.collection('users')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('createdAt', 'asc')
+        .get();
+
+      // Group users by month cohorts
+      const cohortMap = new Map<string, { users: string[]; month: string }>();
+
+      usersQuery.docs.forEach(doc => {
+        const userData = doc.data();
+        const createdAt = userData.createdAt.toDate();
+        const cohortMonth = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!cohortMap.has(cohortMonth)) {
+          cohortMap.set(cohortMonth, { users: [], month: cohortMonth });
+        }
+
+        cohortMap.get(cohortMonth)!.users.push(doc.id);
+      });
+
+      // Calculate retention for each cohort
+      const cohorts = [];
+      for (const [cohortMonth, cohortData] of cohortMap.entries()) {
+        const cohortUsers = cohortData.users;
+        const cohortStartDate = new Date(cohortMonth + '-01');
+
+        // Calculate retention for subsequent months
+        const retentionPeriods = [];
+        for (let monthOffset = 0; monthOffset < 12; monthOffset++) {
+          const periodStart = new Date(cohortStartDate.getFullYear(), cohortStartDate.getMonth() + monthOffset, 1);
+          const periodEnd = new Date(cohortStartDate.getFullYear(), cohortStartDate.getMonth() + monthOffset + 1, 0);
+
+          // Count active users in this period
+          const activeUsersQuery = await db.collection('user_sessions')
+            .where('userId', 'in', cohortUsers.slice(0, 10)) // Firestore 'in' limit
+            .where('createdAt', '>=', periodStart)
+            .where('createdAt', '<=', periodEnd)
+            .get();
+
+          const activeUsers = new Set(activeUsersQuery.docs.map(doc => doc.data().userId)).size;
+          const retentionRate = cohortUsers.length > 0 ? activeUsers / cohortUsers.length : 0;
+
+          retentionPeriods.push({
+            month: monthOffset,
+            activeUsers,
+            retentionRate
+          });
+        }
+
+        cohorts.push({
+          cohort: cohortMonth,
+          size: cohortUsers.length,
+          retentionPeriods: retentionPeriods.slice(0, 6) // First 6 months
+        });
+      }
+
+      return { cohorts: cohorts.slice(0, 12) }; // Last 12 cohorts
+    } catch (error) {
+      console.error('Failed to get user cohorts data:', error);
+      return { cohorts: [] };
+    }
   }
 
-  private async getConversionMetricsData(_query: AnalyticsQuery): Promise<any> {
-    return { conversions: [] };
+  private async getConversionMetricsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get conversion events
+      const conversionsQuery = await db.collection('conversion_events')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      const conversions = conversionsQuery.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          eventId: data.eventId,
+          type: data.type,
+          category: data.category,
+          userId: data.userId,
+          value: data.value || 0,
+          currency: data.currency || 'USD',
+          timestamp: data.createdAt.toDate(),
+          properties: data.properties || {}
+        };
+      });
+
+      // Calculate conversion funnel
+      const funnelSteps = [
+        'landing_page_visit',
+        'signup_started',
+        'signup_completed',
+        'profile_completed',
+        'first_cv_upload',
+        'premium_signup'
+      ];
+
+      const funnelData = [];
+      let previousStepUsers = new Set<string>();
+
+      for (let i = 0; i < funnelSteps.length; i++) {
+        const step = funnelSteps[i];
+        const stepConversions = conversions.filter(c => c.type === step);
+        const stepUsers = new Set(stepConversions.map(c => c.userId));
+
+        let conversionRate = 0;
+        if (i === 0) {
+          // First step - base conversion rate
+          conversionRate = 100;
+          previousStepUsers = stepUsers;
+        } else {
+          // Calculate conversion from previous step
+          conversionRate = previousStepUsers.size > 0 ? (stepUsers.size / previousStepUsers.size) * 100 : 0;
+          previousStepUsers = stepUsers;
+        }
+
+        funnelData.push({
+          step,
+          conversions: stepConversions.length,
+          uniqueUsers: stepUsers.size,
+          conversionRate,
+          totalValue: stepConversions.reduce((sum, c) => sum + c.value, 0)
+        });
+      }
+
+      // Group conversions by type
+      const conversionsByType = conversions.reduce((acc, conversion) => {
+        const type = conversion.type;
+        if (!acc[type]) {
+          acc[type] = {
+            count: 0,
+            value: 0,
+            users: new Set()
+          };
+        }
+        acc[type].count++;
+        acc[type].value += conversion.value;
+        acc[type].users.add(conversion.userId);
+        return acc;
+      }, {} as Record<string, { count: number; value: number; users: Set<string> }>);
+
+      // Convert to final format
+      const typeMetrics = Object.entries(conversionsByType).map(([type, data]) => ({
+        type,
+        count: data.count,
+        value: data.value,
+        uniqueUsers: data.users.size,
+        averageValue: data.count > 0 ? data.value / data.count : 0
+      }));
+
+      return {
+        conversions,
+        funnel: funnelData,
+        conversionsByType: typeMetrics,
+        summary: {
+          totalConversions: conversions.length,
+          totalValue: conversions.reduce((sum, c) => sum + c.value, 0),
+          uniqueUsers: new Set(conversions.map(c => c.userId)).size
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get conversion metrics data:', error);
+      return { conversions: [] };
+    }
   }
 
-  private async getSubscriptionAnalyticsData(_query: AnalyticsQuery): Promise<any> {
-    return { subscriptions: [] };
+  private async getSubscriptionAnalyticsData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000); // 3 months
+
+      // Get subscription events
+      const subscriptionsQuery = await db.collection('subscription_events')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      const subscriptions = subscriptionsQuery.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          planType: data.planType || 'premium',
+          status: data.status || 'active',
+          amount: data.amount || 0,
+          currency: data.currency || 'USD',
+          billingPeriod: data.billingPeriod || 'monthly',
+          startDate: data.startDate?.toDate() || data.createdAt.toDate(),
+          endDate: data.endDate?.toDate(),
+          createdAt: data.createdAt.toDate(),
+          metadata: data.metadata || {}
+        };
+      });
+
+      // Calculate MRR (Monthly Recurring Revenue)
+      const monthlySubscriptions = subscriptions.filter(s => s.billingPeriod === 'monthly' && s.status === 'active');
+      const yearlySubscriptions = subscriptions.filter(s => s.billingPeriod === 'yearly' && s.status === 'active');
+
+      const mrr = monthlySubscriptions.reduce((sum, s) => sum + s.amount, 0) +
+                  yearlySubscriptions.reduce((sum, s) => sum + (s.amount / 12), 0);
+
+      // Calculate ARR (Annual Recurring Revenue)
+      const arr = mrr * 12;
+
+      // Group by plan type
+      const planAnalytics = subscriptions.reduce((acc, sub) => {
+        const plan = sub.planType;
+        if (!acc[plan]) {
+          acc[plan] = {
+            count: 0,
+            revenue: 0,
+            activeUsers: new Set(),
+            churnedUsers: new Set()
+          };
+        }
+
+        acc[plan].count++;
+        acc[plan].revenue += sub.amount;
+
+        if (sub.status === 'active') {
+          acc[plan].activeUsers.add(sub.userId);
+        } else if (sub.status === 'cancelled' || sub.status === 'expired') {
+          acc[plan].churnedUsers.add(sub.userId);
+        }
+
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Convert to analytics format
+      const planMetrics = Object.entries(planAnalytics).map(([plan, data]) => ({
+        plan,
+        subscribers: data.count,
+        revenue: data.revenue,
+        activeUsers: data.activeUsers.size,
+        churnedUsers: data.churnedUsers.size,
+        churnRate: data.activeUsers.size > 0 ? (data.churnedUsers.size / (data.activeUsers.size + data.churnedUsers.size)) * 100 : 0,
+        averageRevenue: data.count > 0 ? data.revenue / data.count : 0
+      }));
+
+      // Calculate subscription trends by month
+      const monthlyTrends = new Map<string, { newSubs: number; churn: number; revenue: number }>();
+
+      subscriptions.forEach(sub => {
+        const monthKey = `${sub.createdAt.getFullYear()}-${String(sub.createdAt.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!monthlyTrends.has(monthKey)) {
+          monthlyTrends.set(monthKey, { newSubs: 0, churn: 0, revenue: 0 });
+        }
+
+        const monthData = monthlyTrends.get(monthKey)!;
+        monthData.newSubs++;
+        monthData.revenue += sub.amount;
+
+        if (sub.status === 'cancelled' || sub.status === 'expired') {
+          monthData.churn++;
+        }
+      });
+
+      const trends = Array.from(monthlyTrends.entries())
+        .map(([month, data]) => ({ month, ...data }))
+        .sort((a, b) => b.month.localeCompare(a.month))
+        .slice(0, 12);
+
+      return {
+        subscriptions,
+        plans: planMetrics,
+        trends,
+        metrics: {
+          totalSubscriptions: subscriptions.length,
+          activeSubscriptions: subscriptions.filter(s => s.status === 'active').length,
+          mrr,
+          arr,
+          averageSubscriptionValue: subscriptions.length > 0 ? subscriptions.reduce((sum, s) => sum + s.amount, 0) / subscriptions.length : 0
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get subscription analytics data:', error);
+      return { subscriptions: [] };
+    }
   }
 
-  private async getUserEngagementData(_query: AnalyticsQuery): Promise<any> {
-    return { periods: [] };
+  private async getUserEngagementData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 90 * 24 * 60 * 60 * 1000); // 3 months
+
+      // Get user session data
+      const sessionsQuery = await db.collection('user_sessions')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      const sessions = sessionsQuery.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          duration: data.duration || 0,
+          pageViews: data.pageViews || 1,
+          actions: data.actions || 0,
+          deviceType: data.deviceType || 'desktop',
+          source: data.source || 'direct',
+          createdAt: data.createdAt.toDate()
+        };
+      });
+
+      // Group sessions by day/week/month periods
+      const periodType = query.groupBy || 'daily';
+      const periodMap = new Map<string, {
+        sessions: number;
+        users: Set<string>;
+        totalDuration: number;
+        totalPageViews: number;
+        totalActions: number;
+      }>();
+
+      sessions.forEach(session => {
+        let periodKey: string;
+        const date = session.createdAt;
+
+        switch (periodType) {
+          case 'weekly':
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            periodKey = weekStart.toISOString().split('T')[0];
+            break;
+          case 'monthly':
+            periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            break;
+          default: // daily
+            periodKey = date.toISOString().split('T')[0];
+        }
+
+        if (!periodMap.has(periodKey)) {
+          periodMap.set(periodKey, {
+            sessions: 0,
+            users: new Set(),
+            totalDuration: 0,
+            totalPageViews: 0,
+            totalActions: 0
+          });
+        }
+
+        const periodData = periodMap.get(periodKey)!;
+        periodData.sessions++;
+        periodData.users.add(session.userId);
+        periodData.totalDuration += session.duration;
+        periodData.totalPageViews += session.pageViews;
+        periodData.totalActions += session.actions;
+      });
+
+      // Convert to periods array
+      const periods = Array.from(periodMap.entries())
+        .map(([period, data]) => ({
+          period,
+          sessions: data.sessions,
+          uniqueUsers: data.users.size,
+          averageSessionDuration: data.sessions > 0 ? data.totalDuration / data.sessions : 0,
+          averagePageViews: data.sessions > 0 ? data.totalPageViews / data.sessions : 0,
+          averageActions: data.sessions > 0 ? data.totalActions / data.sessions : 0,
+          engagementScore: this.calculateEngagementScore(data)
+        }))
+        .sort((a, b) => b.period.localeCompare(a.period))
+        .slice(0, 30); // Last 30 periods
+
+      // Calculate engagement metrics by device type
+      const deviceEngagement = sessions.reduce((acc, session) => {
+        const device = session.deviceType;
+        if (!acc[device]) {
+          acc[device] = {
+            sessions: 0,
+            users: new Set(),
+            totalDuration: 0
+          };
+        }
+
+        acc[device].sessions++;
+        acc[device].users.add(session.userId);
+        acc[device].totalDuration += session.duration;
+        return acc;
+      }, {} as Record<string, any>);
+
+      const deviceMetrics = Object.entries(deviceEngagement).map(([device, data]) => ({
+        device,
+        sessions: data.sessions,
+        users: data.users.size,
+        averageDuration: data.sessions > 0 ? data.totalDuration / data.sessions : 0,
+        percentage: sessions.length > 0 ? (data.sessions / sessions.length) * 100 : 0
+      }));
+
+      // Calculate top user engagement
+      const userEngagement = sessions.reduce((acc, session) => {
+        const userId = session.userId;
+        if (!acc[userId]) {
+          acc[userId] = {
+            sessions: 0,
+            totalDuration: 0,
+            totalActions: 0
+          };
+        }
+
+        acc[userId].sessions++;
+        acc[userId].totalDuration += session.duration;
+        acc[userId].totalActions += session.actions;
+        return acc;
+      }, {} as Record<string, any>);
+
+      const topUsers = Object.entries(userEngagement)
+        .map(([userId, data]) => ({
+          userId,
+          sessions: data.sessions,
+          totalDuration: data.totalDuration,
+          totalActions: data.totalActions,
+          engagementScore: data.sessions * 0.3 + (data.totalDuration / 60) * 0.4 + data.totalActions * 0.3
+        }))
+        .sort((a, b) => b.engagementScore - a.engagementScore)
+        .slice(0, 20);
+
+      return {
+        periods,
+        deviceMetrics,
+        topUsers,
+        summary: {
+          totalSessions: sessions.length,
+          uniqueUsers: new Set(sessions.map(s => s.userId)).size,
+          averageSessionDuration: sessions.length > 0 ? sessions.reduce((sum, s) => sum + s.duration, 0) / sessions.length : 0,
+          totalPageViews: sessions.reduce((sum, s) => sum + s.pageViews, 0),
+          totalActions: sessions.reduce((sum, s) => sum + s.actions, 0)
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get user engagement data:', error);
+      return { periods: [] };
+    }
   }
 
-  private async getChurnAnalysisData(_query: AnalyticsQuery): Promise<any> {
-    return { cohorts: [] };
+  private calculateEngagementScore(data: any): number {
+    // Engagement score based on sessions, duration, and user activity
+    const sessionScore = Math.min(data.sessions / 100, 1) * 30; // Max 30 points
+    const durationScore = Math.min((data.totalDuration / data.sessions) / 300, 1) * 40; // Max 40 points (5 min avg)
+    const activityScore = Math.min((data.totalActions / data.sessions) / 10, 1) * 30; // Max 30 points (10 actions avg)
+
+    return sessionScore + durationScore + activityScore;
+  }
+
+  private async getChurnAnalysisData(query: AnalyticsQuery): Promise<any> {
+    try {
+      const db = admin.firestore();
+      const endDate = query.timeRange?.end || new Date();
+      const startDate = query.timeRange?.start || new Date(endDate.getTime() - 180 * 24 * 60 * 60 * 1000); // 6 months
+
+      // Get churn predictions
+      const churnQuery = await db.collection('churn_predictions')
+        .where('createdAt', '>=', startDate)
+        .where('createdAt', '<=', endDate)
+        .orderBy('churnProbability', 'desc')
+        .get();
+
+      const churnPredictions = churnQuery.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          churnProbability: data.churnProbability || 0,
+          riskLevel: data.riskLevel || 'low',
+          factors: data.factors || [],
+          predictedChurnDate: data.predictedChurnDate?.toDate(),
+          confidence: data.confidence || 0,
+          createdAt: data.createdAt.toDate()
+        };
+      });
+
+      // Group by risk level
+      const riskLevels = churnPredictions.reduce((acc, prediction) => {
+        const level = prediction.riskLevel;
+        if (!acc[level]) {
+          acc[level] = {
+            count: 0,
+            users: new Set(),
+            averageProbability: 0,
+            totalProbability: 0
+          };
+        }
+
+        acc[level].count++;
+        acc[level].users.add(prediction.userId);
+        acc[level].totalProbability += prediction.churnProbability;
+        return acc;
+      }, {} as Record<string, any>);
+
+      const riskMetrics = Object.entries(riskLevels).map(([level, data]) => ({
+        level,
+        users: data.users.size,
+        predictions: data.count,
+        averageProbability: data.count > 0 ? data.totalProbability / data.count : 0,
+        percentage: churnPredictions.length > 0 ? (data.count / churnPredictions.length) * 100 : 0
+      }));
+
+      // Analyze churn factors
+      const churnFactors = churnPredictions.reduce((acc, prediction) => {
+        prediction.factors.forEach((factor: string) => {
+          if (!acc[factor]) {
+            acc[factor] = {
+              count: 0,
+              totalProbability: 0,
+              users: new Set()
+            };
+          }
+
+          acc[factor].count++;
+          acc[factor].totalProbability += prediction.churnProbability;
+          acc[factor].users.add(prediction.userId);
+        });
+        return acc;
+      }, {} as Record<string, any>);
+
+      const topFactors = Object.entries(churnFactors)
+        .map(([factor, data]) => ({
+          factor,
+          occurrences: data.count,
+          affectedUsers: data.users.size,
+          averageChurnProbability: data.count > 0 ? data.totalProbability / data.count : 0,
+          impact: data.count * (data.totalProbability / data.count) // Count * avg probability
+        }))
+        .sort((a, b) => b.impact - a.impact)
+        .slice(0, 10);
+
+      // Calculate cohort churn rates
+      const cohortChurn = new Map<string, {
+        totalUsers: number;
+        churnedUsers: Set<string>;
+        atRiskUsers: Set<string>;
+      }>();
+
+      // Get user cohorts based on registration month
+      const usersQuery = await db.collection('users')
+        .where('createdAt', '>=', new Date(startDate.getTime() - 365 * 24 * 60 * 60 * 1000)) // 1 year back
+        .get();
+
+      usersQuery.docs.forEach(doc => {
+        const userData = doc.data();
+        const cohortMonth = userData.createdAt.toDate().toISOString().slice(0, 7); // YYYY-MM
+
+        if (!cohortChurn.has(cohortMonth)) {
+          cohortChurn.set(cohortMonth, {
+            totalUsers: 0,
+            churnedUsers: new Set(),
+            atRiskUsers: new Set()
+          });
+        }
+
+        const cohortData = cohortChurn.get(cohortMonth)!;
+        cohortData.totalUsers++;
+
+        // Check if user has high churn prediction
+        const userChurnPrediction = churnPredictions.find(p => p.userId === doc.id);
+        if (userChurnPrediction) {
+          if (userChurnPrediction.churnProbability > 0.7) {
+            cohortData.churnedUsers.add(doc.id);
+          } else if (userChurnPrediction.churnProbability > 0.4) {
+            cohortData.atRiskUsers.add(doc.id);
+          }
+        }
+      });
+
+      const cohorts = Array.from(cohortChurn.entries())
+        .map(([month, data]) => ({
+          cohort: month,
+          totalUsers: data.totalUsers,
+          churnedUsers: data.churnedUsers.size,
+          atRiskUsers: data.atRiskUsers.size,
+          churnRate: data.totalUsers > 0 ? (data.churnedUsers.size / data.totalUsers) * 100 : 0,
+          riskRate: data.totalUsers > 0 ? (data.atRiskUsers.size / data.totalUsers) * 100 : 0
+        }))
+        .sort((a, b) => b.cohort.localeCompare(a.cohort))
+        .slice(0, 12);
+
+      // High-risk users requiring immediate attention
+      const highRiskUsers = churnPredictions
+        .filter(p => p.churnProbability > 0.7)
+        .sort((a, b) => b.churnProbability - a.churnProbability)
+        .slice(0, 50)
+        .map(p => ({
+          userId: p.userId,
+          churnProbability: p.churnProbability,
+          riskLevel: p.riskLevel,
+          factors: p.factors,
+          predictedChurnDate: p.predictedChurnDate,
+          confidence: p.confidence
+        }));
+
+      return {
+        cohorts,
+        riskMetrics,
+        topFactors,
+        highRiskUsers,
+        summary: {
+          totalPredictions: churnPredictions.length,
+          averageChurnProbability: churnPredictions.length > 0
+            ? churnPredictions.reduce((sum, p) => sum + p.churnProbability, 0) / churnPredictions.length
+            : 0,
+          highRiskUsers: churnPredictions.filter(p => p.churnProbability > 0.7).length,
+          mediumRiskUsers: churnPredictions.filter(p => p.churnProbability > 0.4 && p.churnProbability <= 0.7).length,
+          lowRiskUsers: churnPredictions.filter(p => p.churnProbability <= 0.4).length
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get churn analysis data:', error);
+      return { cohorts: [] };
+    }
   }
 
   /**

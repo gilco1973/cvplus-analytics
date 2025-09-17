@@ -20,7 +20,13 @@ import {
   MetricType,
   TrafficAllocation
 } from '../types/ab-testing.types';
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
+
+// Initialize Firebase Admin if not already done
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 /**
  * A/B Testing Service
@@ -814,11 +820,11 @@ class ExperimentManager {
   
   async createExperiment(experiment: Experiment): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_experiments').doc(experiment.experimentId).set({
         ...experiment,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to create experiment:', error);
@@ -828,7 +834,7 @@ class ExperimentManager {
   
   async getExperiment(id: string): Promise<Experiment | null> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const doc = await db.collection('ab_experiments').doc(id).get();
 
       if (!doc.exists) {
@@ -850,12 +856,12 @@ class ExperimentManager {
   
   async updateExperiment(id: string, updates: Partial<Experiment>): Promise<Experiment> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const experimentRef = db.collection('ab_experiments').doc(id);
 
       await experimentRef.update({
         ...updates,
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       const updatedDoc = await experimentRef.get();
@@ -872,16 +878,16 @@ class ExperimentManager {
   
   async storeResults(id: string, results: ExperimentResults): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_experiment_results').doc(id).set({
         ...results,
-        storedAt: FieldValue.serverTimestamp()
+        storedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       // Also update the experiment with results reference
       await db.collection('ab_experiments').doc(id).update({
         hasResults: true,
-        lastResultsGeneratedAt: FieldValue.serverTimestamp()
+        lastResultsGeneratedAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to store experiment results:', error);
@@ -893,12 +899,12 @@ class ExperimentManager {
 class VariantAssignmentManager {
   async initializeExperiment(experimentId: string): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_assignments_meta').doc(experimentId).set({
         experimentId,
         totalAssignments: 0,
         variantCounts: {},
-        initializeAt: FieldValue.serverTimestamp()
+        initializeAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to initialize experiment assignments:', error);
@@ -908,7 +914,7 @@ class VariantAssignmentManager {
   
   async getAssignment(experimentId: string, userId: string): Promise<VariantAssignment | null> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const assignmentId = `${experimentId}_${userId}`;
       const doc = await db.collection('ab_assignments').doc(assignmentId).get();
 
@@ -936,19 +942,19 @@ class VariantAssignmentManager {
   
   async storeAssignment(assignment: VariantAssignment): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const assignmentId = `${assignment.experimentId}_${assignment.userId}`;
 
       await db.collection('ab_assignments').doc(assignmentId).set({
         ...assignment,
-        assignedAt: FieldValue.serverTimestamp()
+        assignedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       // Update assignment counts
       const metaRef = db.collection('ab_assignments_meta').doc(assignment.experimentId);
       await metaRef.update({
-        totalAssignments: FieldValue.increment(1),
-        [`variantCounts.${assignment.variantId}`]: FieldValue.increment(1)
+        totalAssignments: admin.firestore.FieldValue.increment(1),
+        [`variantCounts.${assignment.variantId}`]: admin.firestore.FieldValue.increment(1)
       });
     } catch (error) {
       console.error('Failed to store assignment:', error);
@@ -1127,11 +1133,11 @@ class FeatureFlagManager {
   
   async createFlag(flag: FeatureFlag): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('feature_flags').doc(flag.flagId).set({
         ...flag,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to create feature flag:', error);
@@ -1141,7 +1147,7 @@ class FeatureFlagManager {
   
   async evaluateFlag(flagKey: string, userId?: string, context?: Record<string, any>): Promise<any> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const flagQuery = await db.collection('feature_flags')
         .where('key', '==', flagKey)
         .where('status', '==', 'active')
@@ -1184,12 +1190,12 @@ class FeatureFlagManager {
   
   async updateRollout(flagId: string, percentage: number): Promise<FeatureFlag> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const flagRef = db.collection('feature_flags').doc(flagId);
 
       await flagRef.update({
         rolloutPercentage: percentage,
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       const updatedDoc = await flagRef.get();
@@ -1220,11 +1226,11 @@ class ABTestEventTracker {
   
   async startTrackingExperiment(experimentId: string): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_tracking_status').doc(experimentId).set({
         experimentId,
         isTracking: true,
-        startedAt: FieldValue.serverTimestamp(),
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
         eventCount: 0
       });
     } catch (error) {
@@ -1235,10 +1241,10 @@ class ABTestEventTracker {
   
   async stopTrackingExperiment(experimentId: string): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_tracking_status').doc(experimentId).update({
         isTracking: false,
-        stoppedAt: FieldValue.serverTimestamp()
+        stoppedAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to stop tracking experiment:', error);
@@ -1248,17 +1254,17 @@ class ABTestEventTracker {
   
   async trackEvent(event: ABTestEvent): Promise<void> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       await db.collection('ab_events').add({
         ...event,
-        timestamp: FieldValue.serverTimestamp(),
-        createdAt: FieldValue.serverTimestamp()
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       // Update tracking status event count
       await db.collection('ab_tracking_status').doc(event.experimentId).update({
-        eventCount: FieldValue.increment(1),
-        lastEventAt: FieldValue.serverTimestamp()
+        eventCount: admin.firestore.FieldValue.increment(1),
+        lastEventAt: admin.firestore.FieldValue.serverTimestamp()
       });
     } catch (error) {
       console.error('Failed to track AB test event:', error);
@@ -1288,7 +1294,7 @@ class ABTestEventTracker {
   
   async getExperimentEvents(experimentId: string): Promise<ABTestEvent[]> {
     try {
-      const db = getFirestore();
+      const db = admin.firestore();
       const eventsQuery = await db.collection('ab_events')
         .where('experimentId', '==', experimentId)
         .orderBy('timestamp', 'desc')
